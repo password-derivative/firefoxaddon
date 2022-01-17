@@ -1,7 +1,7 @@
 {
   "name": "Password Derivative Extension",
   "description": "Protect your passwords by ensuring none of them are the same. This addon helps to convert your password to domain-based unique derivative, using non-reversible hash encryption: HTML_SAFE_BASE64(HMAC512(password, domain)). Usage: Right click in a password field and choose 'Encrypt password', or press Ctrl+Space (Command+Space on a Mac).",
-  "homepage_url": "https://github.com/notongithub",
+  "homepage_url": "https://github.com/password-derivative/firefoxaddon",
   "manifest_version": 2,
   "version": "1.0",
   "default_locale": "en",
