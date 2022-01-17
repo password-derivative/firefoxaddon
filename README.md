@@ -1,7 +1,8 @@
-Protect your passwords by ensuring none of them are the same. If your password is affected by a data breach on one website, only one leaks.
-This addon helps ensure that every password used is unique by deriving a password from the password entered using non-reversible hash encryption: HTML_SAFE_BASE64(HMAC512(password, domain)). 
+Protect your passwords by ensuring none of them are the same. This addon helps to convert your password to a domain-based unique derivative, using non-reversible hash encryption. 
 
-Usage: Right click in a password field and choose 'Encrypt password', or press Ctrl+Space (Command+Space on a Mac).",
+Usage: Right click in a password field and choose 'Encrypt password', or press Ctrl+Space (Command+Space on a Mac).
+
+Default hash function used is HTML_SAFE_BASE64(HMAC512(password, domain)). You can change the hash in the plugin options.
 
 It uses notifications to show when the actions was succesfull or failed.
 It uses alarms to clean up the notification in 2 seconds.
