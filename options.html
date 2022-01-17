@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+	<link rel="stylesheet" href="options.css"/>
+  </head>
+
+<body>
+  <form>
+      <label>Keyboard shortcut</label>
+      <input type="text" id="shortcut" >
+      <button id="update">Update keyboard shortcut</button>
+      <button id="reset">Reset keyboard shortcut</button>
+	  <br />
+      <label>Requested password size</label>
+      <input type="text" id="passwordsize" size="4"> characters 
+      <button type="submit">Save</button><br />
+	  <label>Domains with complex password requirements</label>  <div class="tooltip">help(?)<span class="tooltiptext">Some domains may require specific characters to accept a password. You can specify them here. They will be appended to the derived password.</span></div> <br />
+	  <textarea id="complexdomains" name="complexdomains" rows="4" cols="50">
+	  vanstrien.link
+	  </textarea>
+	  <br />
+      <i>Fill in one domain per line. Format &lt;domain&gt; &lt;extracharacters&gt;</i><br />
+      <button type="submit">Save</button> <br />
+	  <label>HMAC SHA algorithm to use:</label>
+	  <select name="hashalgo" id="hashalgo">
+		  <option value="sha256">SHA-256</option>
+		  <option value="sha384">SHA-384</option>
+		  <option value="sha512">SHA-512</option>
+		  <option value="sha3">SHA-3</option>
+	  </select>
+	  <button type="submit">Save</button>
+  </form>
+  <script src="options.js"></script>
+</body>
+
+</html>

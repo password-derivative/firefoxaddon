@@ -1,0 +1,63 @@
+{
+  "name": "Password Derivative Extension",
+  "description": "Protect your passwords by ensuring none of them are the same. This addon helps to convert your password to domain-based unique derivative, using non-reversible hash encryption: HTML_SAFE_BASE64(HMAC512(password, domain)). Usage: Right click in a password field and choose 'Encrypt password', or press Ctrl+Space (Command+Space on a Mac).",
+  "homepage_url": "https://github.com/notongithub",
+  "manifest_version": 2,
+  "version": "1.0",
+  "default_locale": "en",
+  "icons": {
+    "48": "icons/link-48.png"
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "password-derivative@eenblauwehemel.nl",
+      "strict_min_version": "96.0"
+    }
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+		"./lib/aes.js",
+		"./lib/hmac-sha256.js",
+		"./lib/hmac-sha384.js",
+		"./lib/hmac-sha512.js",
+		"./lib/hmac-sha3.js",
+		"./lib/enc-base64-min.js",
+		"./lib/enc-utf16-min.js",
+		"./lib/format-hex-min.js",
+		"./lib/tldjs@2.1.0.js",
+		"./content.js"
+		]
+	}
+  ],
+
+  "permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+  
+  "permissions": [
+  		"alarms",
+        "contextMenus",
+		"notifications",
+		"storage"
+  ],
+
+  "commands": {
+    "toggle-feature": {
+      "suggested_key": { "default": "Ctrl+Space" },
+      "description": "Send a 'toggle-feature' event to the extension"
+    }
+  },
+
+  "options_ui": {
+    "page": "options.html",
+    "browser_style": true
+  }
+}
