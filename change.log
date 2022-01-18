@@ -1,0 +1,9 @@
+v1.1 feature release
+Option screen: Nicer layout
+Option screen: Added possibility to verify hash configuration
+Added Argon2 support
+
+v1.0.1 minor bugfix release
+Fixed an error occuring when user doesn't save options before using the plugin
+
+v1.0 initial release
