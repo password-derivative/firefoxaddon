@@ -25,6 +25,11 @@ td#pwtd {
 	
 }
 
+#outcome { 
+	border: 1px solid rgba(91, 91, 102, 0.4);
+	background-color: rgba(12, 12, 13, 0.1);
+}
+
 table.calculation tbody tr td input {
 	width: 100%;
 }
