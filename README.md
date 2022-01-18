@@ -10,13 +10,13 @@ HTML_SAFE_BASE64(HMAC512(password, domain)).substring(0,16)
 
 # Usage
 Type your password in the password field and then either:
-- Right click in a password field and choose 'Encrypt password'
+- Right click in a password field and choose 'Encrypt password'.
 - Press Ctrl+Space (Command+Space on a Mac) while in the password field.
 
 You can customize the following in options:
-- The hash algorithm used
-- The desired size of the derivative
-- The hotkey used to convert the password
+- The hash algorithm used.
+- The desired size of the derivative.
+- The hotkey used to convert the password.
 - and more ...
 
 # Permission usage
@@ -25,11 +25,11 @@ You can customize the following in options:
 
 Other technical permissions:
 - Alarms: It uses alarms to clean up the notification in 2 seconds.
-- ContextMenus: To add the 'Encrypt password' option
-- Storage: To store the settings of the addon locally in your browser
+- ContextMenus: To add the 'Encrypt password' option.
+- Storage: To store the settings of the addon locally in your browser.
 
 # Future music
 To supply stronger hashing, I might want to implement this one later on:
 - https://github.com/antelle/argon2-browser
 
-Current challenge is that it requires a C module.
+Current challenge is that it requires a C module to be compiled.
