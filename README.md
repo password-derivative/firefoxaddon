@@ -37,6 +37,6 @@ Other technical permissions:
 Argon2 has been implemented in v1.1:
 - https://github.com/antelle/argon2-browser
 
-Currently only added fixed parameter settings can be selected.
+Currently only fixed parameter configurations can be selected.
 
 More to be added ...
