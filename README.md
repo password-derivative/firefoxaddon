@@ -5,14 +5,14 @@ The passwords are not stored anywhere and no state is kept. The default hash fun
 
 # Usage
 Type your password in the password field and then either:
-	- Right click in a password field and choose 'Encrypt password'
-	- Press Ctrl+Space (Command+Space on a Mac) while in the password field.
+- Right click in a password field and choose 'Encrypt password'
+- Press Ctrl+Space (Command+Space on a Mac) while in the password field.
 
 You can customize the following in options:
-	- The hash algorithm used
-	- The desired size of the derivative
-	- The hotkey used to convert the password
-	- and more ...
+- The hash algorithm used
+- The desired size of the derivative
+- The hotkey used to convert the password
+- and more ...
 
 # Permission usage
 Display notifications to you: it uses notifications to show when the actions was succesfull or failed.
