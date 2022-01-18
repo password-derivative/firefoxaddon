@@ -29,9 +29,9 @@ Other technical permissions:
 - Storage: To store the settings of the addon locally in your browser.
 
 # Libraries
-argon2-browser from NPM (v1.18.0)
-CryptoJS from code.google.com (v3.1.2)
-tldjs from NPM (v2.1.0)
+- argon2-browser from NPM (v1.18.0)
+- CryptoJS from code.google.com (v3.1.2)
+- tldjs from NPM (v2.1.0)
 
 # Future music
 Argon2 has been implemented in v1.1:
