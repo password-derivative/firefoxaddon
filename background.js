@@ -93,37 +93,43 @@ function connected(p) {
 							switch(hashalgo) {
 							  case "sha256":
 								var newHMAC = CryptoJS.HmacSHA256(hostname, passwordvalue);
+								var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
+								var finalBase64String = base64String.slice(0, passwordsize);
+								continueEncryptPassword(finalBase64String, hostname, complexdomains);
 								break;
 							  case "sha384":
 								var newHMAC = CryptoJS.HmacSHA384(hostname, passwordvalue);
+								var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
+								var finalBase64String = base64String.slice(0, passwordsize);
+								continueEncryptPassword(finalBase64String, hostname, complexdomains);
 								break;
 							  case "sha3":
 								var newHMAC = CryptoJS.HmacSHA3(hostname, passwordvalue);
+								var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
+								var finalBase64String = base64String.slice(0, passwordsize);
+								continueEncryptPassword(finalBase64String, hostname, complexdomains);
+								break;
+							  case "argon2d-time1-parallel1-mem32-hashLen33":
+								argon2.hash({ pass: passwordvalue, salt: hostname, time: 1, parallelism: 1, mem: 32, hashLen: 33, type: argon2.ArgonType.Argon2d})
+								.then(h => continueEncryptPassword(h.encoded.substring(h.encoded.length - passwordsize), hostname, complexdomains))
+								.catch(e => console.error(e.message, e.code));
+								break;
+							  case "argon2i-time1-parallel1-mem32-hashLen33":
+								argon2.hash({ pass: passwordvalue, salt: hostname, time: 1, parallelism: 1, mem: 32, hashLen: 33, type: argon2.ArgonType.Argon2i})
+								.then(h => continueEncryptPassword(h.encoded.substring(h.encoded.length - passwordsize), hostname, complexdomains))
+								.catch(e => console.error(e.message, e.code));
+								break;
+							  case "argon2id-time1-parallel1-mem32-hashLen33":
+								argon2.hash({ pass: passwordvalue, salt: hostname, time: 1, parallelism: 1, mem: 32, hashLen: 33, type: argon2.ArgonType.Argon2id})
+								.then(h => continueEncryptPassword(h.encoded.substring(h.encoded.length - passwordsize), hostname, complexdomains))
+								.catch(e => console.error(e.message, e.code));
 								break;
 							  default:
 								var newHMAC = CryptoJS.HmacSHA512(hostname, passwordvalue);
+								var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
+								var finalBase64String = base64String.slice(0, passwordsize);
+								continueEncryptPassword(finalBase64String, hostname, complexdomains);
 							} 
-							var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
-							var finalBase64String = base64String.slice(0, passwordsize);
-							console.log(newHMAC.toString());
-							console.log(base64String);
-							console.log(finalBase64String);
-							
-							//process domains that have complexity requirements
-							var arr = complexdomains.split("\n");
-							console.log(arr.length + " saved complex domains found");
-							for (var i = 0; i < arr.length; i++)
-							{
-								var thisdomain = arr[i].split(" ");
-								if (thisdomain[0] == hostname) {
-									console.log("complex domain matched");
-									finalBase64String = finalBase64String + thisdomain[1];
-								}
-							}
-							
-							//send back the derivative
-							console.log("encrypt-success");
-							portFromCS.postMessage({greeting: "encrypt-success", derivative: finalBase64String});
 						}
 					}
 				});
@@ -132,6 +138,30 @@ function connected(p) {
 	}
   });
 }
+
+/**
+Have to split this part due to async argon2
+**/
+function continueEncryptPassword(finalBase64String, hostname, complexdomains) {
+	console.log(finalBase64String);
+	
+	//process domains that have complexity requirements
+	var arr = complexdomains.split("\n");
+	console.log(arr.length + " saved complex domains found");
+	for (var i = 0; i < arr.length; i++)
+	{
+		var thisdomain = arr[i].split(" ");
+		if (thisdomain[0] == hostname) {
+			console.log("complex domain matched");
+			finalBase64String = finalBase64String + thisdomain[1];
+		}
+	}
+	
+	//send back the derivative
+	console.log("encrypt-success");
+	portFromCS.postMessage({greeting: "encrypt-success", derivative: finalBase64String});
+}
+
 
 browser.runtime.onConnect.addListener(connected);
 

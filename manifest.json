@@ -20,14 +20,6 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-		"./lib/aes.js",
-		"./lib/hmac-sha256.js",
-		"./lib/hmac-sha384.js",
-		"./lib/hmac-sha512.js",
-		"./lib/hmac-sha3.js",
-		"./lib/enc-base64-min.js",
-		"./lib/enc-utf16-min.js",
-		"./lib/format-hex-min.js",
 		"./lib/tldjs@2.1.0.js",
 		"./content.js"
 		]
@@ -48,6 +40,7 @@
 		"./lib/enc-base64-min.js",
 		"./lib/enc-utf16-min.js",
 		"./lib/format-hex-min.js",
+		"./lib/argon2-browser/dist/argon2-bundled.min.js",
 		"./lib/tldjs@2.1.0.js",
 		"background.js"
 	]

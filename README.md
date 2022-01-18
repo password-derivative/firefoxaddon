@@ -28,6 +28,11 @@ Other technical permissions:
 - ContextMenus: To add the 'Encrypt password' option.
 - Storage: To store the settings of the addon locally in your browser.
 
+# Libraries
+argon2-browser from NPM (v1.18.0)
+CryptoJS from code.google.com (v3.1.2)
+tldjs from NPM (v2.1.0)
+
 # Future music
 To supply stronger hashing, I might want to implement this one later on:
 - https://github.com/antelle/argon2-browser

@@ -26,12 +26,16 @@
 		  <option value="sha384">SHA-384</option>
 		  <option value="sha512">SHA-512</option>
 		  <option value="sha3">SHA-3</option>
+		  <option value="argon2i-time1-parallel1-mem32-hashLen33">Argon2i (experimental)</option>
+		  <option value="argon2d-time1-parallel1-mem32-hashLen33">Argon2d (experimental)</option>
+		  <option value="argon2id-time1-parallel1-mem32-hashLen33">Argon2id (experimental)</option>
 	  </select>
+	  <div class="tooltip">argon2(?)<span class="tooltiptext">Argon2 has been experimentally implemented and may change in the future<br />Parameters: Time1 Parallism1 Memory32 Hashlength33</span></div>
 	  <br />
 	  <button type="submit">Save</button>
 	  <br />
 	  <p class="settings-title">Advanced options</p>
-	  <label>Domains with complex password requirements</label>  <div class="tooltip">help(?)<span class="tooltiptext">Some domains may require specific characters to accept a password. You can specify them here. They will be appended to the calculated password derivative.</span></div> <br />
+	  <label>Domains with complex password requirements</label>  <div class="tooltip">help(?)<span class="tooltiptext">Some domains may require specific characters to accept a password.<br />You can specify them here.<br />They will be appended to the calculated password derivative.</span></div> <br />
 	  <textarea id="complexdomains" name="complexdomains" rows="4" cols="50">
 	  </textarea>
 	  <br />
