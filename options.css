@@ -1,3 +1,24 @@
+label { 
+	color: rgb(91, 91, 102);
+}
+p {
+	color: rgb(91, 91, 102);
+}
+textarea {
+	width:100%;
+}
+hr {
+	width:100%; 
+	border:1px solid var(--in-content-border-color);
+}
+
+.settings-title {
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 22px;
+	
+}
+
  /* Tooltip container */
 .tooltip {
   position: relative;
@@ -32,7 +53,7 @@
   content: "";
   position: absolute;
   top: 100%;
-  left: 50%;
+  left: 12%;
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;

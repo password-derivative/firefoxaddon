@@ -23,7 +23,7 @@ function connected(p) {
   portFromCS = p;
   portFromCS.postMessage({greeting: "Hello from background script!"});
   portFromCS.onMessage.addListener(function(m) {
-    console.log("Received from content script:" + m.greeting);
+    console.log("Background script received:" + m.greeting);
 	
 	if (m.greeting == "encrypt-success") {
 		console.log("opening notification");
@@ -48,6 +48,87 @@ function connected(p) {
 			"message": content
 		  });
 		  browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+	}
+	if (m.greeting == "encrypt-password") {
+		var passwordvalue = "";
+		var domainvalue = "";
+		var passwordsize = DEFAULTpasswordsize;
+		var complexdomains = DEFAULTcomplexdomains;
+		var hashalgo = DEFAULThashalgo;
+		
+		if (m.passwordvalue) passwordvalue = m.passwordvalue;
+		if (m.domainvalue) domainvalue = m.domainvalue;
+		var passwordSizeItem = browser.storage.local.get('passwordsize');
+		passwordSizeItem.then((res) => {
+			passwordsize = res.passwordsize || DEFAULTpasswordsize;	
+			if (m.passwordsize) passwordsize = m.passwordsize;
+			
+			var complexdomainsItem = browser.storage.local.get('complexdomains');
+			complexdomainsItem.then((res) => {
+				complexdomains = res.complexdomains || DEFAULTcomplexdomains;
+				if (m.complexdomains) complexdomains = m.complexdomains;
+				
+				var hashalgoItem = browser.storage.local.get('hashalgo');
+				hashalgoItem.then((res) => {
+					hashalgo = res.hashalgo || DEFAULThashalgo;
+					if (m.hashalgo) hashalgo = m.hashalgo;
+
+					if (passwordvalue == "") {
+						console.log("NULL password value" );
+						portFromCS.postMessage({greeting: "encrypt-failed-null-value"});
+					} else if (domainvalue == "") {
+						console.log("NULL domain value" );
+						portFromCS.postMessage({greeting: "encrypt-failed-null-value"});
+					} else {
+						var hostname = tldjs.getDomain(domainvalue);
+						if (hostname === null) {
+							//invalid hostname
+							console.log("NULL hostname value" );
+							portFromCS.postMessage({greeting: "encrypt-failed-null-value"});
+						} else {
+							console.log("Hostname: " + hostname);
+							
+							//derive a password
+							console.log("Using algo: "+ hashalgo);
+							switch(hashalgo) {
+							  case "sha256":
+								var newHMAC = CryptoJS.HmacSHA256(hostname, passwordvalue);
+								break;
+							  case "sha384":
+								var newHMAC = CryptoJS.HmacSHA384(hostname, passwordvalue);
+								break;
+							  case "sha3":
+								var newHMAC = CryptoJS.HmacSHA3(hostname, passwordvalue);
+								break;
+							  default:
+								var newHMAC = CryptoJS.HmacSHA512(hostname, passwordvalue);
+							} 
+							var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
+							var finalBase64String = base64String.slice(0, passwordsize);
+							console.log(newHMAC.toString());
+							console.log(base64String);
+							console.log(finalBase64String);
+							
+							//process domains that have complexity requirements
+							var arr = complexdomains.split("\n");
+							console.log(arr.length + " saved complex domains found");
+							for (var i = 0; i < arr.length; i++)
+							{
+								var thisdomain = arr[i].split(" ");
+								if (thisdomain[0] == hostname) {
+									console.log("complex domain matched");
+									finalBase64String = finalBase64String + thisdomain[1];
+								}
+							}
+							
+							//send back the derivative
+							console.log("encrypt-success");
+							portFromCS.postMessage({greeting: "encrypt-success", derivative: finalBase64String});
+						}
+					}
+				});
+			});
+		});
 	}
   });
 }
