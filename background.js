@@ -7,6 +7,9 @@ let portFromCS;
 var MsgNotification = "encrypt-msg-notification";
 var MsgNotificationTimer = "encrypt-msg-notification-timer";
 var MsgNotificationAutoClearTime = 0.034; //cleanup after two seconds
+let DEFAULTpasswordsize = 16;
+let DEFAULTcomplexdomains = "";
+let DEFAULThashalgo = "sha512";
 
 browser.alarms.onAlarm.addListener(function(alarm) {
   if (alarm.name == MsgNotificationTimer) {
@@ -98,11 +101,5 @@ gettingAllCommands.then((commands) => {
  
 //debug via about:debugging
 browser.commands.onCommand.addListener((command) => {
-	  //get default password sizeToContent
-	  var passwordSizeItem = browser.storage.local.get('passwordsize');
-	  var passwordsize = 16;
-	  passwordSizeItem.then((res) => {
-		passwordsize = res.passwordsize || 16;
 		portFromCS.postMessage({greeting: "encrypt-password"});
-	  });
 });

@@ -1,6 +1,9 @@
 
 let myPort = browser.runtime.connect({name:"strongpassword-port"});
 myPort.postMessage({greeting: "Hello from content script"});
+let DEFAULTpasswordsize = 16;
+let DEFAULTcomplexdomains = "";
+let DEFAULThashalgo = "sha512";
 
 /**
 Listen to messges from background script
@@ -11,17 +14,17 @@ myPort.onMessage.addListener(function(m) {
   
   if (m.greeting == "encrypt-password") {
 	var passwordSizeItem = browser.storage.local.get('passwordsize');
-	var passwordsize = 16;
+	var passwordsize = DEFAULTpasswordsize;
 	passwordSizeItem.then((res) => {
-		passwordsize = res.passwordsize || 16;	
+		passwordsize = res.passwordsize || DEFAULTpasswordsize;	
 		var complexdomainsItem = browser.storage.local.get('complexdomains');
-		var complexdomains = "";
+		var complexdomains = DEFAULTcomplexdomains;
 		complexdomainsItem.then((res) => {
-			complexdomains = res.complexdomains;
+			complexdomains = res.complexdomains || DEFAULTcomplexdomains;
 			var hashalgoItem = browser.storage.local.get('hashalgo');
-			var hashalgo = "";
+			var hashalgo = DEFAULThashalgo;
 			hashalgoItem.then((res) => {
-				hashalgo = res.hashalgo;
+				hashalgo = res.hashalgo || DEFAULThashalgo;
 				var inputfield = window.document.activeElement;
 				if (inputfield.type.toLowerCase() === "password") {
 					if (inputfield.value == "") {
