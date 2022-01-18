@@ -1,7 +1,12 @@
 # Password Derivation Extension
 Protect your passwords by ensuring none of them are the same. This addon helps to convert your password to a domain-based unique derivative, using non-reversible hash encryption. 
 
-The passwords are not stored anywhere and no state is kept. The default hash function used is HTML_SAFE_BASE64(HMAC512(password, domain)).
+The passwords are not stored anywhere and no state is kept.
+
+The default hash function used is:
+```
+HTML_SAFE_BASE64(HMAC512(password, domain)).substring(0,16)
+```
 
 # Usage
 Type your password in the password field and then either:
