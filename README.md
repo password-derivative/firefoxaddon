@@ -20,7 +20,7 @@ You can customize the following in options:
 - and more ...
 
 # Permission usage
-- **Display notifications to you**: it uses notifications to show when the actions was succesfull or failed.
+- **Display notifications to you**: it uses notifications to show when the action was succesfull or failed.
 - **Access your data for all websites**: the program has to read the password field to calculate the derivative.
 
 Other technical permissions:
@@ -30,5 +30,5 @@ Other technical permissions:
 
 # Future music
 To supply stronger hashing, I might want to implement this one later on:
-https://github.com/antelle/argon2-browser
+- https://github.com/antelle/argon2-browser
 Current challenge is that it requires a C module.
