@@ -31,4 +31,5 @@ Other technical permissions:
 # Future music
 To supply stronger hashing, I might want to implement this one later on:
 - https://github.com/antelle/argon2-browser
+
 Current challenge is that it requires a C module.
