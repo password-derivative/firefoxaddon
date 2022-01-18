@@ -20,13 +20,13 @@ You can customize the following in options:
 - and more ...
 
 # Permission usage
-Display notifications to you: it uses notifications to show when the actions was succesfull or failed.
-Access your data for all websites: the program has to read the password field to calculate the derivative.
+- **Display notifications to you**: it uses notifications to show when the actions was succesfull or failed.
+- **Access your data for all websites**: the program has to read the password field to calculate the derivative.
 
 Other technical permissions:
-Alarms: It uses alarms to clean up the notification in 2 seconds.
-ContextMenus: To add the 'Encrypt password' option
-Storage: To store the settings of the addon locally in your browser
+- Alarms: It uses alarms to clean up the notification in 2 seconds.
+- ContextMenus: To add the 'Encrypt password' option
+- Storage: To store the settings of the addon locally in your browser
 
 # Future music
 To supply stronger hashing, I might want to implement this one later on:
