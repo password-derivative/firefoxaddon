@@ -34,7 +34,8 @@ CryptoJS from code.google.com (v3.1.2)
 tldjs from NPM (v2.1.0)
 
 # Future music
-To supply stronger hashing, I might want to implement this one later on:
+Argon2 has been implemented in v1.1:
 - https://github.com/antelle/argon2-browser
+Currently only added fixed parameter settings can be selected.
 
-Current challenge is that it requires a C module to be compiled.
+More to be added ...
