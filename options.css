@@ -2,14 +2,31 @@ label {
 	color: rgb(91, 91, 102);
 }
 p {
+	border-top: 1px solid rgba(12, 12, 13, 0.1);
+	border-bottom: 1px solid rgba(12, 12, 13, 0.1);
+	line-height: 24px;
 	color: rgb(91, 91, 102);
 }
 textarea {
 	width:100%;
 }
-hr {
-	width:100%; 
-	border:1px solid var(--in-content-border-color);
+
+button, select {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+table.calculation {
+	width: 100%;
+}
+
+td#pwtd {
+	border-style: none none double;
+	
+}
+
+table.calculation tbody tr td input {
+	width: 100%;
 }
 
 .settings-title {

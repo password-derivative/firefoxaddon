@@ -20,7 +20,7 @@ myPort.onMessage.addListener(function(m) {
 			}
 		break;
 		case "encrypt-failed-null-value":
-			document.querySelector("#outcome").value = "values entered are incorrect";
+			document.querySelector("#outcome").value = "a value entered is incorrect";
 		break;
 	}
 });
