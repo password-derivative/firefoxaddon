@@ -34,9 +34,12 @@ Other technical permissions:
 - tldjs from NPM (v2.1.0)
 
 # Future music
-Argon2 has been implemented in v1.1:
+Will investigate if more hash algorithms can be added, such as:
+- Blake2
+- Blake2b
+- Blake3
+- .. ?
+
+
+Rejected Argon2 implementation for now, because it seems to be platform dependend.
 - https://github.com/antelle/argon2-browser
-
-Currently only fixed parameter configurations can be selected.
-
-More to be added ...
