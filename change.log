@@ -1,5 +1,5 @@
-v1.2 bugfix release
-Argon2 implementation had bugs: discontinued Argon2 as it turns out to be platform dependend
+v1.2 bugfix and feature release
+Argon2 implementation had bugs: discontinued Argon2 as it appears to be platform depended
 Added scrypt
 
 v1.1 feature release
