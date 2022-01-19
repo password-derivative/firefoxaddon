@@ -1,3 +1,6 @@
+v1.2 bugfix release (unreleased)
+Argon2 implementation had bugs: discontinued Argon2 as it turns out to be platform dependend
+
 v1.1 feature release
 Option screen: Nicer layout
 Option screen: Added possibility to verify hash configuration

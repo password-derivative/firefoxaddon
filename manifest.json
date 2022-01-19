@@ -3,7 +3,7 @@
   "description": "Protect your passwords by ensuring none of them are the same. Convert your password to a domain-based unique derivative, using non-reversible hash encryption.",
   "homepage_url": "https://github.com/password-derivative/firefoxaddon",
   "manifest_version": 2,
-  "version": "1.1",
+  "version": "1.2",
   "default_locale": "en",
   "icons": {
     "48": "icons/link-48.png"
@@ -40,7 +40,6 @@
 		"./lib/enc-base64-min.js",
 		"./lib/enc-utf16-min.js",
 		"./lib/format-hex-min.js",
-		"./lib/argon2-browser/dist/argon2-bundled.min.js",
 		"./lib/tldjs@2.1.0.js",
 		"background.js"
 	]
