@@ -40,6 +40,6 @@ Will investigate if more hash algorithms can be added, such as:
 - Blake3
 - .. ?
 
-Dropped Argon2 implementation for now, because it appears to be platform dependend.
+Dropped Argon2 implementation for now, because it appears to be platform dependent.
 - https://github.com/antelle/argon2-browser
 - argon2-browser from NPM (v1.18.0)
