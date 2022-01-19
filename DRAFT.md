@@ -52,3 +52,9 @@ PATH += /C/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14
 
 Install emscripten SDK version '3.1.1', is described on: https://emscripten.org/docs/getting_started/downloads.html
 Mozilla instructions on installing WebAssembly: https://developer.mozilla.org/en-US/docs/WebAssembly/C_to_wasm
+
+Argon2 is interesting, but can generate different outputs across different platforms:
+$argon2d$v=19$m=1024,t=1,p=1$Y3J5cHRvZ3JhcGh5X2FwcF9zdGF0aWNfc2FsdA$Db/nI/WY8DtjPUfBxE4nT8yFn2nMJ7QfAueDXZTdj2c (Windows nonewline)
+$argon2d$v=19$m=1024,t=1,p=1$Y3J5cHRvZ3JhcGh5X2FwcF9zdGF0aWNfc2FsdA$4e687tbd0JrHA5cHLENRfg/oSyV6+/wNz5kmpwkiRGE (Windows newline)
+$argon2d$v=19$m=1024,t=1,p=1$Y3J5cHRvZ3JhcGh5X2FwcF9zdGF0aWNfc2FsdA$6EJYBiJa50/kERmPc8+aXn+mzjqygMglb8jTAS2YG/Y (Windows with forced linux newline)
+$argon2d$v=19$m=1024,t=1,p=1$Y3J5cHRvZ3JhcGh5X2FwcF9zdGF0aWNfc2FsdA$/YweHC6qqurm8YlkCxnnSo/XLgMtx99sU8Mxt1ewtZk (Firefox)
