@@ -25,7 +25,7 @@ td#pwtd {
 	
 }
 
-#outcome { 
+input:read-only { 
 	border: 1px solid rgba(91, 91, 102, 0.4);
 	background-color: rgba(12, 12, 13, 0.1);
 }
@@ -70,6 +70,10 @@ table.calculation tbody tr td input {
   transition: opacity 0.3s;
 }
 
+.smalltooltip .tooltiptext {
+  width: 220px;
+  margin-left: -70px;
+}
 
 /* Tooltip arrow */
 .tooltip .tooltiptext::after {
@@ -78,6 +82,18 @@ table.calculation tbody tr td input {
   top: 100%;
   left: 12%;
   margin-left: 150px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Tooltip arrow */
+.smalltooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 12%;
+  margin-left: 40px;
   border-width: 5px;
   border-style: solid;
   border-color: #555 transparent transparent transparent;

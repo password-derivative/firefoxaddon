@@ -5,7 +5,7 @@ The passwords are not stored anywhere and no state is kept.
 
 The default hash function used is:
 ```
-HTML_SAFE_BASE64(HMAC512(password, domain)).substring(0,16)
+BASE64(HMAC512(password, domain)).substring(0,16)
 ```
 
 # Usage
@@ -14,7 +14,7 @@ Type your password in the password field and then either:
 - Press Ctrl+Space (Command+Space on a Mac) while in the password field.
 
 You can customize the following in options:
-- The hash algorithm used.
+- The hash algorithm used (SHA256, SHA384, SHA512, SHA3)
 - The desired size of the derivative.
 - The hotkey used to convert the password.
 - and more ...
@@ -29,9 +29,9 @@ Other technical permissions:
 - Storage: To store the settings of the addon locally in your browser.
 
 # Libraries
-- argon2-browser from NPM (v1.18.0)
 - CryptoJS from code.google.com (v3.1.2)
 - tldjs from NPM (v2.1.0)
+- Scrypt from https://github.com/ricmoo/scrypt-js
 
 # Future music
 Will investigate if more hash algorithms can be added, such as:
@@ -40,6 +40,6 @@ Will investigate if more hash algorithms can be added, such as:
 - Blake3
 - .. ?
 
-
-Rejected Argon2 implementation for now, because it seems to be platform dependend.
+Dropped Argon2 implementation for now, because it appears to be platform dependend.
 - https://github.com/antelle/argon2-browser
+- argon2-browser from NPM (v1.18.0)

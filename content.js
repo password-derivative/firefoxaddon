@@ -1,3 +1,4 @@
+const debug = false;
 
 let myPort = browser.runtime.connect({name:"strongpassword-port"});
 myPort.postMessage({greeting: "Hello from content script"});
@@ -7,7 +8,7 @@ Listen to messges from background script
 When message received, encrypt the password
 **/
 myPort.onMessage.addListener(function(m) {
-    console.log("Received from background script: " + m.greeting);
+    if (debug) console.log("Received from background script: " + m.greeting);
 	
 	switch(m.greeting) {
 		case "encrypt-password":

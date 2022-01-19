@@ -10,10 +10,16 @@ var MsgNotificationAutoClearTime = 0.034; //cleanup after two seconds
 let DEFAULTpasswordsize = 16;
 let DEFAULTcomplexdomains = "";
 let DEFAULThashalgo = "sha512";
+//Settings for SCrypt
+let DEFAULTcpu = "4096";
+let DEFAULTmemory = "8";
+let DEFAULTparallel = "1";
+let DEFAULThashalgosize = "64";
+const debug = false;
 
 browser.alarms.onAlarm.addListener(function(alarm) {
   if (alarm.name == MsgNotificationTimer) {
-	console.log("clean up the notification");
+	if (debug) console.log("clean up the notification");
 	browser.notifications.clear(MsgNotification);
 	browser.alarms.clear(MsgNotificationTimer);	
   }
@@ -23,10 +29,10 @@ function connected(p) {
   portFromCS = p;
   portFromCS.postMessage({greeting: "Hello from background script!"});
   portFromCS.onMessage.addListener(function(m) {
-    console.log("Background script received:" + m.greeting);
+    if (debug) console.log("Background script received:" + m.greeting);
 	
 	if (m.greeting == "encrypt-success") {
-		console.log("opening notification");
+		if (debug) console.log("opening notification");
 		  var title = browser.i18n.getMessage("notificationTitle");
 		  var content = browser.i18n.getMessage("notificationContentSuccess", "x");
 		  browser.notifications.create(MsgNotification, {
@@ -38,7 +44,7 @@ function connected(p) {
 		  browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
 	}
 	if (m.greeting == "encrypt-failed-null-value") {
-		console.log("opening notification");
+		if (debug) console.log("opening notification");
 		  var title = browser.i18n.getMessage("notificationTitle");
 		  var content = browser.i18n.getMessage("notificationContentFailedNullValue", "x");
 		  browser.notifications.create(MsgNotification, {
@@ -55,6 +61,10 @@ function connected(p) {
 		var passwordsize = DEFAULTpasswordsize;
 		var complexdomains = DEFAULTcomplexdomains;
 		var hashalgo = DEFAULThashalgo;
+		var cpu = DEFAULTcpu;
+		var memory = DEFAULTmemory;
+		var parallel = DEFAULTparallel;
+		var hashalgosize = DEFAULThashalgosize;
 		
 		if (m.passwordvalue) passwordvalue = m.passwordvalue;
 		if (m.domainvalue) domainvalue = m.domainvalue;
@@ -74,22 +84,22 @@ function connected(p) {
 					if (m.hashalgo) hashalgo = m.hashalgo;
 
 					if (passwordvalue == "") {
-						console.log("NULL password value" );
+						if (debug) console.log("NULL password value" );
 						portFromCS.postMessage({greeting: "encrypt-failed-null-value"});
 					} else if (domainvalue == "") {
-						console.log("NULL domain value" );
+						if (debug) console.log("NULL domain value" );
 						portFromCS.postMessage({greeting: "encrypt-failed-null-value"});
 					} else {
 						var hostname = tldjs.getDomain(domainvalue);
 						if (hostname === null) {
 							//invalid hostname
-							console.log("NULL hostname value" );
+							if (debug) console.log("NULL hostname value" );
 							portFromCS.postMessage({greeting: "encrypt-failed-null-value"});
 						} else {
-							console.log("Hostname: " + hostname);
+							if (debug) console.log("Hostname: " + hostname);
 							
 							//derive a password
-							console.log("Using algo: "+ hashalgo);
+							if (debug) console.log("Using algo: "+ hashalgo);
 							switch(hashalgo) {
 							  case "sha256":
 								var newHMAC = CryptoJS.HmacSHA256(hostname, passwordvalue);
@@ -108,6 +118,38 @@ function connected(p) {
 								var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
 								var finalBase64String = base64String.slice(0, passwordsize);
 								continueEncryptPassword(finalBase64String, hostname, complexdomains);
+								break;
+							case "scrypt":
+								var cpuItem = browser.storage.local.get('cpu');
+								cpuItem.then((res) => {
+								cpu = res.cpu || DEFAULTcpu;
+								if (m.cpu) cpu = m.cpu;
+									var memoryItem = browser.storage.local.get('memory');
+									memoryItem.then((res) => {
+									memory = memory.cpu || DEFAULTmemory;
+									if (m.memory) memory = m.memory;
+										var parallelItem = browser.storage.local.get('parallel');
+										parallelItem.then((res) => {
+										parallel = parallel.cpu || DEFAULTparallel;
+										if (m.parallel) parallel = m.parallel;										
+											var hashalgosizeItem = browser.storage.local.get('hashalgosize');
+											hashalgosizeItem.then((res) => {
+											hashalgosize = hashalgosize.cpu || DEFAULThashalgosize;
+											if (m.hashalgosize) hashalgosize = m.hashalgosize;
+												var enc = new TextEncoder(); // always utf-8
+												var passwordvalueenc = enc.encode(passwordvalue);
+												var hostnameenc = enc.encode(hostname);
+												var scryptarr = scrypt.syncScrypt(passwordvalueenc, hostnameenc, parseInt(cpu), parseInt(memory), parseInt(parallel), parseInt(hashalgosize));
+												
+												var dec = new TextDecoder(); // always utf-8
+												var base64String = btoa(String.fromCharCode.apply(null, scryptarr));
+												
+												var finalBase64String = base64String.slice(0, passwordsize);
+												continueEncryptPassword(finalBase64String, hostname, complexdomains);
+											});
+										});
+									});
+								});
 								break;
 							  default:
 								var newHMAC = CryptoJS.HmacSHA512(hostname, passwordvalue);
@@ -128,22 +170,22 @@ function connected(p) {
 Have to split this part due to async argon2
 **/
 function continueEncryptPassword(finalBase64String, hostname, complexdomains) {
-	console.log(finalBase64String);
+	if (debug) console.log(finalBase64String);
 	
 	//process domains that have complexity requirements
 	var arr = complexdomains.split("\n");
-	console.log(arr.length + " saved complex domains found");
+	if (debug) console.log(arr.length + " saved complex domains found");
 	for (var i = 0; i < arr.length; i++)
 	{
 		var thisdomain = arr[i].split(" ");
 		if (thisdomain[0] == hostname) {
-			console.log("complex domain matched");
+			if (debug) console.log("complex domain matched");
 			finalBase64String = finalBase64String + thisdomain[1];
 		}
 	}
 	
 	//send back the derivative
-	console.log("encrypt-success");
+	if (debug) console.log("encrypt-success");
 	portFromCS.postMessage({greeting: "encrypt-success", derivative: finalBase64String});
 }
 
@@ -161,7 +203,7 @@ browser.contextMenus.create({
 
 browser.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "encrypt-password") {
-		console.log("encrypting password");
+		if (debug) console.log("encrypting password");
 		portFromCS.postMessage({greeting: "encrypt-password"});
 	}
 });
@@ -184,7 +226,7 @@ gettingAllCommands.then((commands) => {
   for (let command of commands) {
     // Note that this logs to the Add-on Debugger's console: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Debugging
     // not the regular Web console.
-    console.log(command);
+    if (debug) console.log(command);
   }
 });
 
