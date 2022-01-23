@@ -48,7 +48,7 @@ function connected(p) {
 			  var content = browser.i18n.getMessage("notificationContentSuccess", "x");
 			  browser.notifications.create(MsgNotification, {
 				"type": "basic",
-				"iconUrl": browser.extension.getURL("icons/link-48.png"),
+				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
 				"title": title,
 				"message": content
 			  });
@@ -59,7 +59,7 @@ function connected(p) {
 			  var content = browser.i18n.getMessage("notificationContentFailedNullValue", "x");
 			  browser.notifications.create(MsgNotification, {
 				"type": "basic",
-				"iconUrl": browser.extension.getURL("icons/link-48.png"),
+				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
 				"title": title,
 				"message": content
 			  });
@@ -70,7 +70,7 @@ function connected(p) {
 			  var content = browser.i18n.getMessage("notificationContentFailedNullDomainValue", "x");
 			  browser.notifications.create(MsgNotification, {
 				"type": "basic",
-				"iconUrl": browser.extension.getURL("icons/link-48.png"),
+				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
 				"title": title,
 				"message": content
 			  });
@@ -81,7 +81,7 @@ function connected(p) {
 			  var content = browser.i18n.getMessage("notificationContentFailedInvalidDomainValue", "x");
 			  browser.notifications.create(MsgNotification, {
 				"type": "basic",
-				"iconUrl": browser.extension.getURL("icons/link-48.png"),
+				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
 				"title": title,
 				"message": content
 			  });
