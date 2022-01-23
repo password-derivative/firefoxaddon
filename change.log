@@ -1,10 +1,16 @@
+v1.2.1 bugfix release
+Fixed an issue where simply visiting the option screen broke the functionality
+Option screen: made more clear what effect settings have
+Option screen verify: shows algorithm used
+Option screen: nicer layout
+
 v1.2 bugfix and feature release
 Argon2 implementation had bugs: discontinued Argon2 as it appears to be platform dependent
 Added scrypt
 
 v1.1 feature release
-Option screen: Nicer layout
-Option screen: Added possibility to verify hash configuration
+Option screen: nicer layout
+Option screen: added possibility to verify hash configuration
 Added Argon2 support
 
 v1.0.1 minor bugfix release

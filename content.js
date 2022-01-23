@@ -1,6 +1,7 @@
+'use strict';
 const debug = false;
 
-let myPort = browser.runtime.connect({name:"strongpassword-port"});
+let myPort = browser.runtime.connect({name:"strongpassword-content-port"});
 myPort.postMessage({greeting: "Hello from content script"});
 
 /**
@@ -15,7 +16,7 @@ myPort.onMessage.addListener(function(m) {
 			var inputfield = window.document.activeElement;
 			if (inputfield.type) {
 				if (inputfield.type.toLowerCase() === "password") {
-					myPort.postMessage({greeting: "encrypt-password", 
+					myPort.postMessage({greeting: "encrypt-password", port: "strongpassword-content-port",
 						domainvalue: tldjs.getDomain(window.location.hostname), 
 						passwordvalue: inputfield.value
 						});
@@ -28,13 +29,13 @@ myPort.onMessage.addListener(function(m) {
 				if (inputfield.type) {
 					if (inputfield.type.toLowerCase() === "password") {
 					  inputfield.value = m.derivative;
-					  myPort.postMessage({greeting: "encrypt-success"});
+					  myPort.postMessage({greeting: "encrypt-success", port: "strongpassword-content-port"});
 					}
 				}
 			}
 		break;
 		case "encrypt-failed-null-value":
-			myPort.postMessage({greeting: "encrypt-failed-null-value"});
+			myPort.postMessage({greeting: "encrypt-failed-null-value", port: "strongpassword-content-port"});
 		break;
 	}
 });

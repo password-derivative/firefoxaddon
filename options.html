@@ -7,86 +7,95 @@
   </head>
 
 <body>
-  <form>
   <div>
-	  <p class="settings-title">Usability settings</p>
+  <button id="basicoptions" class="tab-button tab-button-active">Basic Options</button><button id="advancedoptions" class="tab-button">Advanced Options</button><button id="verifyoptions" class="tab-button">Verify Options</button>
+  <form>
+  <div id="basicsettings" style="display: block">
+	<p class="settings-title">Usability settings</p>
       <label>Keyboard shortcut</label>
       <input type="text" id="shortcut" >
       <button id="update">Update keyboard shortcut</button>
       <button id="reset">Reset keyboard shortcut</button>
-	  <br />
-	  <label>Right-click menu item in password field: </label> <b>always active</b>.
-	  <p class="settings-title">Basic password derivative settings</p>
+	<br />
+	<label>Right-click menu item in password field: </label> <b>always active</b>.
+	<p class="settings-title">Basic password derivative settings</p>
       <label>Requested derivative size</label>
-      <input type="text" id="passwordsize" size="4"> characters 
-	  <br />
-	  	  <label>Algorithm to use:</label>
-	  <select name="hashalgo" id="hashalgo">
-		  <option value="sha256">HMAC SHA-256</option>
-		  <option value="sha384">HMAC SHA-384</option>
-		  <option value="sha512">HMAC SHA-512</option>
-		  <option value="sha3">KMAC SHA-3</option>
-		  <option value="scrypt">SCrypt (advanced)</option>
-	  </select>
-	  <br />
-	  <button type="submit">Save</button>
-	  <br />
-	  <div id="scryptsettings" style="display: none">
-		  <p class="settings-title">Advanced Scrypt settings</p>
-			<table class="calculation">
-			  <tr><td><label>Salt</label></td><td><input id="salt" name="salt" type="text" value="domainname" readonly></td></tr>
-			  <tr><td><label>CPU difficulty<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Must be a power of 2, > 1.<br />Also affects memory, but mostly CPU</span></div></label></td>
-				 <td><select id="cpu" name="cpu">
-				 	  <option value="2">2</option>
-					  <option value="4">4</option>
-					  <option value="8">8</option>
-					  <option value="16">16</option>
-					  <option value="32">32</option>
-					  <option value="64">64</option>
-					  <option value="128">128</option>
-					  <option value="256">256</option>
-					  <option value="512">512</option>
-					  <option value="1024">1024</option>
-					  <option value="2048">2048</option>
-					  <option value="4096">4096</option>
-					  <option value="8192">8192</option>
-					  <option value="16384" selected>16384</option>
-					  <!--
-					  <option value="32768">32768</option>
-					  <option value="65536">65536</option>
-					  <option value="131072">131072</option>
-					  <option value="262144">262144</option>
-					  <option value="524288">524288</option>
-					  <option value="1048576">1048576</option>
-					  -->
-					  </select>
-				 </td>
-				</tr>
-			  <tr><td><label>Memory difficulty<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 1 - Maximum: 65536<br />Also affects CPU, but mostly memory</span></div></label></td><td><input id="memory" name="memory" type="text" value="8"></td></tr>
-			  <tr><td><label>Parallel difficulty<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 1 - Maximum: 44</span></div></label></td><td><input id="parallel" type="text" value="1"></td></tr>
-			  <tr><td><label>Requested length<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 60 - Maximum: 256</span></div></label></td><td><i><input id="hashalgosize" type="text" value="64"></i></td></tr>
-			</table>
-		  <br />
-	  </div>
-	  <p class="settings-title">Advanced options</p>
-	  <label>Domains with complex password requirements</label>  <div class="tooltip">help(?)<span class="tooltiptext">Some domains may require specific characters to accept a password.<br />You can specify them here.<br />They will be appended to the calculated password derivative.</span></div> <br />
-	  <textarea id="complexdomains" name="complexdomains" rows="4" cols="50">
-	  </textarea>
-	  <br />
-      <i>Fill in one domain per line. Format &lt;domain&gt; &lt;extracharacters&gt;</i><br />
-      <button type="submit">Save</button>
+      <input type="text" id="passwordsize" size="4"> characters <div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 1 - Maximum: 44</span></div>
+	<br />
+	  	<label>Algorithm to use:</label>
+	<select name="hashalgo" id="hashalgo">
+		<option value="sha256">HMAC SHA-256</option>
+		<option value="sha384">HMAC SHA-384</option>
+		<option value="sha512">HMAC SHA-512</option>
+		<option value="sha3">HMAC SHA-3 (legacy)</option>
+		<option value="scrypt">Scrypt (advanced)</option>
+	</select>
+	<br />
+	<button type="submit">Save</button>
+	<br />
+	</div>
+	<div id="advancedsettings" style="display: none">
+		<br />
+		<div style="background-color: #FF848C; border: 2px dashed #000; padding: 4px 4px 4px 4px;"><b>Warning! All these settings change the derivative outcome. Save them somewhere to prevent losing access.</b><br /></div>
+		<div id="domainsettings">
+		<p class="settings-title">Advanced domain options</p>
+		<label>Domains with complex password requirements</label>  <div class="tooltip">help(?)<span class="tooltiptext">Some domains may require specific characters to accept a password.<br />You can specify them here.<br />They will be appended to the calculated password derivative.</span></div> <br />
+		<textarea id="complexdomains" name="complexdomains" rows="4" cols="50">
+		</textarea>
+		<br />
+		<i>Fill in one domain per line. Format &lt;domain&gt; &lt;extracharacters&gt;</i><br />
+		</div>
+		<div id="scryptsettings" style="display: none">
+			<p class="settings-title">Advanced scrypt settings</p>
+				<table class="calculation">
+				<tr><td><label>Salt</label></td><td><input id="salt" name="salt" type="text" value="domainname" readonly></td></tr>
+				<tr><td><label>CPU difficulty<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Must be a power of 2, > 1.<br />Also affects memory, but mostly CPU</span></div></label></td>
+					 <td><select id="cpu" name="cpu">
+						<option value="2">2</option>
+						<option value="4">4</option>
+						<option value="8">8</option>
+						<option value="16">16</option>
+						<option value="32">32</option>
+						<option value="64">64</option>
+						<option value="128">128</option>
+						<option value="256">256</option>
+						<option value="512">512</option>
+						<option value="1024">1024</option>
+						<option value="2048">2048</option>
+						<option value="4096">4096</option>
+						<option value="8192">8192</option>
+						<option value="16384" selected>16384</option>
+						<!--
+						<option value="32768">32768</option>
+						<option value="65536">65536</option>
+						<option value="131072">131072</option>
+						<option value="262144">262144</option>
+						<option value="524288">524288</option>
+						<option value="1048576">1048576</option>
+						  -->
+						</select>
+					 </td>
+					</tr>
+				<tr><td><label>Memory difficulty<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 1 - Maximum: 65536<br />Also affects CPU, but mostly memory</span></div></label></td><td><input id="memory" name="memory" type="text" value="8"></td></tr>
+				<tr><td><label>Parallel difficulty<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 1 - Maximum: 44</span></div></label></td><td><input id="parallel" type="text" value="1"></td></tr>
+				<tr><td><label>Requested length<div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 60 - Maximum: 256</span></div></label></td><td><i><input id="hashalgosize" type="text" value="64"></i></td></tr>
+				</table>
+		</div>
+		<button type="submit">Save</button>
+	</div>
   </div>
   </form>
-  <form>
-  <p class="settings-title">Perform verification calculation</p>
-  <i>You can use this to verify the derivative calculated is what you expect it to be.</i><br /><br />
-  <table class="calculation">
-  <tr><td><label>Domain</label></td><td><input id="domain" type="text"></td></tr>
-  <tr><td><label>Password</label></td><td id="pwtd"><input id="password" type="password"></td></tr>
-  <tr><td><label>Derivative outcome</label></td><td><input id="outcome" type="text" value="N/A" readonly></td></tr>
-  </table>
-  <button id="calculate" type="button" size="10">Calculate outcome</button>
-  </form>
+  <div id="verifysettings" style="display: none">
+	  <p class="settings-title">Perform verification calculation</p>
+	  <i>You can use this to verify the derivative calculated is what you expect it to be.</i><br /><br />
+	  <table class="calculation">
+	  <tr><td><label>Domain</label></td><td><input id="domain" type="text"></td></tr>
+	  <tr><td><label>Password</label></td><td id="pwtd"><input id="password" type="password"></td></tr>
+	  <tr><td><label>Derivative outcome</label></td><td><input id="outcome" type="text" value="N/A" readonly></td></tr>
+	  <tr><td><label>Algorithm used</label></td><td><input id="algooutcome" type="text" value="N/A" readonly></td></tr>
+	  </table>
+	  <button id="calculate" type="button" size="10">Calculate outcome</button>
+  </div>
   <script src="options.js"></script>
 </body>
 

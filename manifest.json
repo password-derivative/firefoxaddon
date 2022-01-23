@@ -1,9 +1,9 @@
 {
-  "name": "Password Derivative Extension",
+  "name": "Password derivative extension",
   "description": "Protect your passwords by ensuring none of them are the same. Convert your password to a domain-based unique derivative, using non-reversible hash encryption.",
   "homepage_url": "https://github.com/password-derivative/firefoxaddon",
   "manifest_version": 2,
-  "version": "1.2",
+  "version": "1.2.1",
   "default_locale": "en",
   "icons": {
     "48": "icons/link-48.png"

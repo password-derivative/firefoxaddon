@@ -1,3 +1,4 @@
+const debug = false;
 const commandName = 'toggle-feature';
 
 let DEFAULTpasswordsize = 16;
@@ -9,10 +10,9 @@ let DEFAULTcpu = "4096";
 let DEFAULTmemory = "8";
 let DEFAULTparallel = "1";
 let DEFAULThashalgosize = "64";
-const debug = false;
 
-let myPort = browser.runtime.connect({name:"strongpassword-port"});
-myPort.postMessage({greeting: "Hello from option script"});
+let myPort = browser.runtime.connect({name:"strongpassword-option-port"});
+myPort.postMessage({greeting: "Hello from option script", port: "strongpassword-option-port"});
 
 /**
 Listen to messges from background script
@@ -27,7 +27,13 @@ myPort.onMessage.addListener(function(m) {
 			}
 		break;
 		case "encrypt-failed-null-value":
-			document.querySelector("#outcome").value = "a value entered is incorrect";
+			document.querySelector("#outcome").value = "the password is empty";
+		break;
+		case "encrypt-failed-null-domain-value":
+			document.querySelector("#outcome").value = "the domain is empty";
+		break;
+		case "encrypt-failed-domain-value":
+			document.querySelector("#outcome").value = "the domainname is not valid";
 		break;
 	}
 });
@@ -35,60 +41,39 @@ myPort.onMessage.addListener(function(m) {
  * Update the UI: set the value of the shortcut textbox.
  */
 async function updateUI() {
-  let commands = await browser.commands.getAll();
-  for (command of commands) {
-    if (command.name === commandName) {
-      document.querySelector('#shortcut').value = command.shortcut;
-    }
-  }
-
-  var gettingItem = browser.storage.local.get('passwordsize');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#passwordsize").value = res.passwordsize || DEFAULTpasswordsize;
-  });
+	let commands = await browser.commands.getAll();
+	for (command of commands) {
+		if (command.name === commandName) {
+		  document.querySelector('#shortcut').value = command.shortcut;
+		}
+	}
   
-  var gettingItem = browser.storage.local.get('complexdomains');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#complexdomains").value = res.complexdomains || DEFAULTcomplexdomains;
-  });
-  
-  var gettingItem = browser.storage.local.get('hashalgo');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#hashalgo").value = res.hashalgo || DEFAULThashalgo;
-	updateScryptUI();
-  });
-  var gettingItem = browser.storage.local.get('salt');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#salt").value = res.salt || DEFAULTsalt;
-  });
-  
-  var gettingItem = browser.storage.local.get('cpu');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#cpu").value = res.cpu || DEFAULTcpu;
-  });
-  
-  var gettingItem = browser.storage.local.get('memory');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#memory").value = res.memory || DEFAULTmemory;
-  });
-  
-  var gettingItem = browser.storage.local.get('parallel');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#parallel").value = res.parallel || DEFAULTparallel;
-  });
-  
-  var gettingItem = browser.storage.local.get('hashalgosize');
-  if (debug) console.log(gettingItem);
-  gettingItem.then((res) => {
-    document.querySelector("#hashalgosize").value = res.hashalgosize || DEFAULThashalgosize;
-  });
+	//get configuration
+	var getConfigurationItem = browser.storage.local.get({
+	  passwordsize: DEFAULTpasswordsize,
+	  complexdomains: DEFAULTcomplexdomains,
+	  hashalgo: DEFAULThashalgo,
+	  salt: DEFAULTsalt,
+	  cpu: DEFAULTcpu,
+	  memory: DEFAULTmemory,
+	  parallel: DEFAULTparallel,
+	  hashalgosize: DEFAULThashalgosize
+	});
+	
+	if (debug) console.log(getConfigurationItem);
+	
+	getConfigurationItem.then((res) => {
+		if (debug) console.log(getConfigurationItem);
+		document.querySelector("#passwordsize").value = res.passwordsize;
+		document.querySelector("#complexdomains").value = res.complexdomains;
+		document.querySelector("#hashalgo").value = res.hashalgo;
+		document.querySelector("#salt").value = res.salt;
+		document.querySelector("#cpu").value = res.cpu;
+		document.querySelector("#memory").value = res.memory;
+		document.querySelector("#parallel").value = res.parallel;
+		document.querySelector("#hashalgosize").value = res.hashalgosize;
+	});
+	
 }
 
 /**
@@ -109,6 +94,9 @@ async function resetShortcut() {
   updateUI();
 }
 
+/**
+ * Save the chosen options
+ **/
 function saveOptions(e) {
 	var passwordsize = document.querySelector("#passwordsize").value;
 	var cpu = document.querySelector("#cpu").value;
@@ -116,90 +104,66 @@ function saveOptions(e) {
 	var parallel = document.querySelector("#parallel").value;
 	var hashalgosize = document.querySelector("#hashalgosize").value;
 	
-	if (isNaN(passwordsize)) {
-		document.querySelector("#passwordsize").value = DEFAULTpasswordsize; //size needs to be a number
-	}
-	if (passwordsize > 44) {
-		document.querySelector("#passwordsize").value = 44; //largest size HMAC256 in BASE64 supports
-	}
+	if (isNaN(passwordsize)) document.querySelector("#passwordsize").value = DEFAULTpasswordsize; //size needs to be a number
+	if (passwordsize < 1) document.querySelector("#passwordsize").value = 44; //smallest size the derivative addon supports
+	if (passwordsize > 44) document.querySelector("#passwordsize").value = 44; //largest size HMAC256 in BASE64 supports
 	
 	//CPU must be larger than 1, a power of 2 and less than 2^(128 * memory / 8)
 	//Protected by dropdown field to satisfy this requirement
-	if (isNaN(cpu)) {
-		document.querySelector("#cpu").value = DEFAULTcpu;
-	}
-	if (cpu < 1) {
-		document.querySelector("#cpu").value = DEFAULTcpu; //smallest size SCrypt supports
-	}
-	if (cpu > 65536) {
-		document.querySelector("#cpu").value = DEFAULTcpu; //largest size the derivative addon supports
-	}
-	if (isNaN(memory)) {
-		document.querySelector("#memory").value = DEFAULTmemory;
-	}
-	if (memory < 1) {
-		document.querySelector("#memory").value = DEFAULTmemory; //smallest size SCrypt supports
-	}
-	if (memory > 65536) {
-		document.querySelector("#memory").value = DEFAULTmemory; //largest size the derivative addon supports
-	}
-	if (isNaN(parallel)) {
-		document.querySelector("#parallel").value = DEFAULTparallel;
-	}
-	if (parallel < 1) {
-		document.querySelector("#parallel").value = DEFAULTparallel; //smallest size SCrypt supports
-	}
-	if (parallel > 44) {
-		document.querySelector("#parallel").value = DEFAULTparallel; //largest size the derivative addon supports
-	}
-	if (isNaN(hashalgosize)) {
-		document.querySelector("#hashalgosize").value = DEFAULThashalgosize;
-	}
-	if (hashalgosize < 60) {
-		document.querySelector("#hashalgosize").value = DEFAULThashalgosize; //smallest size the derivative addon supports
-	}
-	if (hashalgosize > 256) {
-		document.querySelector("#hashalgosize").value = DEFAULThashalgosize; //largest size the derivative addon supports
-	}
+	if (isNaN(cpu)) document.querySelector("#cpu").value = DEFAULTcpu;
+	if (cpu < 1) document.querySelector("#cpu").value = DEFAULTcpu; //smallest size SCrypt supports
+	if (cpu > 65536) document.querySelector("#cpu").value = DEFAULTcpu; //largest size the derivative addon supports
+	if (isNaN(memory)) document.querySelector("#memory").value = DEFAULTmemory;
+	if (memory < 1) document.querySelector("#memory").value = DEFAULTmemory; //smallest size SCrypt supports
+	if (memory > 65536) document.querySelector("#memory").value = DEFAULTmemory; //largest size the derivative addon supports
+	if (isNaN(parallel)) document.querySelector("#parallel").value = DEFAULTparallel;
+	if (parallel < 1) document.querySelector("#parallel").value = DEFAULTparallel; //smallest size SCrypt supports
+	if (parallel > 44) document.querySelector("#parallel").value = DEFAULTparallel; //largest size the derivative addon supports
+	if (isNaN(hashalgosize)) document.querySelector("#hashalgosize").value = DEFAULThashalgosize;
+	if (hashalgosize < 60) document.querySelector("#hashalgosize").value = DEFAULThashalgosize; //smallest size the derivative addon supports
+	if (hashalgosize > 256) document.querySelector("#hashalgosize").value = DEFAULThashalgosize; //largest size the derivative addon supports
 	
   if (debug) console.log("saving options");
-  if (debug) console.log(document.querySelector("#passwordsize").value);
-  browser.storage.local.set({
-    passwordsize: document.querySelector("#passwordsize").value
-  });
-  if (debug) console.log(document.querySelector("#complexdomains").value);
-  browser.storage.local.set({
-    complexdomains: document.querySelector("#complexdomains").value
-  });
-  if (debug) console.log(document.querySelector("#hashalgo").value);
-  browser.storage.local.set({
-    hashalgo: document.querySelector("#hashalgo").value
-  });
-  if (debug) console.log(DEFAULTsalt);
-  browser.storage.local.set({
-    salt: DEFAULTsalt
-  });
-  if (debug) console.log(document.querySelector("#cpu").value);
-  browser.storage.local.set({
-    cpu: document.querySelector("#cpu").value
-  });
-  if (debug) console.log(document.querySelector("#memory").value);
-  browser.storage.local.set({
-    memory: document.querySelector("#memory").value
-  });
-  if (debug) console.log(document.querySelector("#parallel").value);
-  browser.storage.local.set({
-    parallel: document.querySelector("#parallel").value
-  });
-  if (debug) console.log(document.querySelector("#hashalgosize").value);
-  browser.storage.local.set({
-    hashalgosize: document.querySelector("#hashalgosize").value
-  });
+  
+  var optionschosen = {
+	  passwordsize: document.querySelector("#passwordsize").value,
+	  complexdomains: document.querySelector("#complexdomains").value,
+	  hashalgo: document.querySelector("#hashalgo").value,
+	  salt: DEFAULTsalt,
+	  cpu: document.querySelector("#cpu").value,
+	  memory: document.querySelector("#memory").value,
+	  parallel: document.querySelector("#parallel").value,
+	  hashalgosize: document.querySelector("#hashalgosize").value
+  };
+  
+  if (debug) console.log(optionschosen);
+  
+  browser.storage.local.set(optionschosen);
   
   e.preventDefault();
 }
 
-async function updateScryptUI() {
+async function basicUI() {
+	document.querySelector("#basicoptions").className = "tab-button tab-button-active";
+	document.querySelector("#advancedoptions").className = "tab-button";
+	document.querySelector("#verifyoptions").className = "tab-button";
+	
+	document.querySelector("#basicsettings").style.display = "block";
+	document.querySelector("#advancedsettings").style.display = "none";
+	document.querySelector("#verifysettings").style.display = "none";
+	document.querySelector("#scryptsettings").style.display = "none";
+}
+
+async function advancedUI() {
+	document.querySelector("#basicoptions").className = "tab-button";
+	document.querySelector("#advancedoptions").className = "tab-button tab-button-active";
+	document.querySelector("#verifyoptions").className = "tab-button";
+	
+	document.querySelector("#basicsettings").style.display = "none";
+	document.querySelector("#advancedsettings").style.display = "block";
+	document.querySelector("#verifysettings").style.display = "none";
+	document.querySelector("#scryptsettings").style.display = "none";
+	
 	if (document.querySelector("#hashalgo").value == "scrypt") {
 		document.querySelector("#scryptsettings").style.display = "block";
 	} else {
@@ -207,13 +171,56 @@ async function updateScryptUI() {
 	}
 }
 
-function performCalculate() {	
-	myPort.postMessage({greeting: "encrypt-password", 
+async function verifyUI() {
+	document.querySelector("#basicoptions").className = "tab-button";
+	document.querySelector("#advancedoptions").className = "tab-button";
+	document.querySelector("#verifyoptions").className = "tab-button tab-button-active";
+	
+	document.querySelector("#basicsettings").style.display = "none";
+	document.querySelector("#advancedsettings").style.display = "none";
+	document.querySelector("#verifysettings").style.display = "block";
+	document.querySelector("#scryptsettings").style.display = "none";
+}
+
+function performCalculate() {
+	document.querySelector("#algooutcome").value = document.querySelector("#hashalgo").value;
+	
+	myPort.postMessage({greeting: "encrypt-password", port: "strongpassword-option-port",
 						domainvalue: document.querySelector("#domain").value, 
 						passwordvalue: document.querySelector("#password").value, 
 						passwordsize: document.querySelector("#passwordsize").value, 
-						hashalgo: document.querySelector("#hashalgo").value
+						hashalgo: document.querySelector("#hashalgo").value,
+					    cpu: document.querySelector("#cpu").value,
+						memory: document.querySelector("#memory").value,
+						parallel: document.querySelector("#parallel").value,
+						hashalgosize: document.querySelector("#hashalgosize").value
 						});
+						
+	//get configuration
+	var getConfigurationItem = browser.storage.local.get({
+	  hashalgo: DEFAULThashalgo,
+	  salt: DEFAULTsalt,
+	  cpu: DEFAULTcpu,
+	  memory: DEFAULTmemory,
+	  parallel: DEFAULTparallel,
+	  hashalgosize: DEFAULThashalgosize
+	});
+	
+	if (debug) console.log(getConfigurationItem);
+	
+	getConfigurationItem.then((res) => {
+		if (debug) console.log(getConfigurationItem);
+		var notsaved = false;
+		if (document.querySelector("#hashalgo").value != res.hashalgo) notsaved = true;
+		if (document.querySelector("#salt").value != res.salt) notsaved = true;
+		if (document.querySelector("#cpu").value != res.cpu) notsaved = true;
+		if (document.querySelector("#memory").value != res.memory) notsaved = true;
+		if (document.querySelector("#parallel").value != res.parallel) notsaved = true;
+		if (document.querySelector("#hashalgosize").value != res.hashalgosize) notsaved = true;
+		
+		if (notsaved) document.querySelector("#algooutcome").value = document.querySelector("#hashalgo").value + " (not saved yet!)";
+	});
+	
 }
 /**
  * Update the UI when the page loads.
@@ -227,4 +234,7 @@ document.querySelector('#update').addEventListener('click', updateShortcut)
 document.querySelector('#reset').addEventListener('click', resetShortcut)
 document.querySelector("form").addEventListener("submit", saveOptions);
 document.querySelector('#calculate').addEventListener('click', performCalculate);
-document.querySelector('#hashalgo').addEventListener('change', updateScryptUI);
+
+document.querySelector('#basicoptions').addEventListener('click', basicUI);
+document.querySelector('#advancedoptions').addEventListener('click', advancedUI);
+document.querySelector('#verifyoptions').addEventListener('click', verifyUI);

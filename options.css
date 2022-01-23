@@ -34,6 +34,92 @@ table.calculation tbody tr td input {
 	width: 100%;
 }
 
+button.tab-button {
+	/**accent-color: rgb(10, 132, 255);**/
+	width: 33.3333%;
+	appearance: none;
+	background-attachment: scroll;
+	background-clip: border-box;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: none;
+	background-origin: padding-box;
+	background-position-x: 0%;
+	background-position-y: 0%;
+	background-repeat: repeat;
+	background-size: auto;
+	border-inline-end-color: rgb(21, 20, 26);
+	border-inline-end-style: none;
+	border-inline-end-width: 0px;
+	border-inline-start-color: rgb(21, 20, 26);
+	border-inline-start-style: none;
+	border-inline-start-width: 0px;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+	color: rgb(21, 20, 26);
+	color-scheme: light dark;
+	cursor: default;
+	font-family: Segoe UI;
+	font-feature-settings: normal;
+	font-kerning: auto;
+	font-language-override: normal;
+	font-optical-sizing: auto;
+	font-size: 14px;
+	font-size-adjust: none;
+	font-stretch: 100%;
+	font-style: normal;
+	font-variant-alternates: normal;
+	font-variant-caps: normal;
+	font-variant-east-asian: normal;
+	font-variant-ligatures: normal;
+	font-variant-numeric: normal;
+	font-variant-position: normal;
+	font-variation-settings: normal;
+	font-weight: 600;
+	line-height: 20px;
+	margin-bottom: 0px;
+	margin-inline-end: 0px;
+	margin-inline-start: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 0px;
+	min-height: 32px;
+	min-width: 88.2px;
+	padding-bottom: 4px;
+	padding-left: 16px;
+	padding-right: 16px;
+	padding-top: 4px;
+	text-decoration-color: rgb(21, 20, 26);
+	text-decoration-line: none;
+	text-decoration-style: solid;
+	text-decoration-thickness: auto;
+	text-align: center;
+	border-bottom: 1px solid rgba(12, 12, 13, 0.1);
+	line-height: 24px;
+	color: rgb(91, 91, 102);
+}
+
+button.tab-button:hover {
+	background-color: rgba(207, 207, 216, 0.66);
+	border-block-start-color: rgba(21, 20, 26, 0.41);
+	border-inline-end-color: rgba(0, 0, 0, 0);
+	border-inline-start-color: rgba(0, 0, 0, 0);
+	border-top-color: rgba(21, 20, 26, 0.41);
+}
+
+button.tab-button-active {
+	border-top-color: rgb(10, 132, 255);
+	color: rgb(10, 132, 255);
+	text-decoration-color: rgb(10, 132, 255);
+	text-decoration-thickness: auto;
+}
+button.tab-button-active:hover {
+	background-color: rgba(207, 207, 216, 0.66);
+	border-block-start-color: rgba(21, 20, 26, 0.41);
+	border-inline-end-color: rgba(0, 0, 0, 0);
+	border-inline-start-color: rgba(0, 0, 0, 0);
+	border-top-color: rgb(21, 20, 26);
+}
+
 .settings-title {
 	font-size: 14px;
 	font-weight: 600;

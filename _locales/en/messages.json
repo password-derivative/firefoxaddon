@@ -22,5 +22,15 @@
   "notificationContentFailedNullValue": {
     "message": "Encryption failed: for security reasons you cannot encrypt an empty password.",
     "description": "Tells the user that empty values cannot be encrypted."
+  },
+  
+  "notificationContentFailedNullDomainValue": {
+    "message": "Encryption failed: the domain is empty.",
+    "description": "Tells the user that empty values cannot be encrypted."
+  },
+  
+  "notificationContentFailedInvalidDomainValue": {
+    "message": "Encryption failed: the domain is not a valid domain.",
+    "description": "Tells the user that the domain has not been filled in correctly."
   }
 }
