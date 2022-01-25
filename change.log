@@ -1,3 +1,6 @@
+v1.2.2 bugfix release
+Fixed an issue where simply visiting a new website screen broke the functionality on previous websites
+
 v1.2.1 bugfix release
 Fixed an issue where simply visiting the option screen broke the functionality
 Option screen: made more clear what effect settings have

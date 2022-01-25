@@ -13,7 +13,7 @@ let DEFAULThashalgosize = "64";
 
 let myPort = browser.runtime.connect({name:"strongpassword-option-port"});
 myPort.postMessage({greeting: "Hello from option script", port: "strongpassword-option-port"});
-
+let replyPort;
 /**
 Listen to messges from background script
 When message received, encrypt the password
@@ -21,6 +21,10 @@ When message received, encrypt the password
 myPort.onMessage.addListener(function(m) {
   if (debug) console.log("Received from background script: " + m.greeting);
 	switch(m.greeting) {
+		case "register-replyport":
+			if (debug) console.log("Registering reply port: " + m.replyPort);	
+			replyPort = m.replyPort;
+		break;
 		case "encrypt-success":
 			if (m.derivative) {
 			  document.querySelector("#outcome").value = m.derivative;
@@ -185,7 +189,7 @@ async function verifyUI() {
 function performCalculate() {
 	document.querySelector("#algooutcome").value = document.querySelector("#hashalgo").value;
 	
-	myPort.postMessage({greeting: "encrypt-password", port: "strongpassword-option-port",
+	myPort.postMessage({greeting: "encrypt-password", port: replyPort,
 						domainvalue: document.querySelector("#domain").value, 
 						passwordvalue: document.querySelector("#password").value, 
 						passwordsize: document.querySelector("#passwordsize").value, 

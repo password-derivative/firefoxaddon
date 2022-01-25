@@ -4,9 +4,7 @@ const debug = false;
 /**
 Listen to requests from content script
 **/
-let ports = [];
-let portFromCS;
-let portFromOS;
+let port = [];
 var MsgNotification = "encrypt-msg-notification";
 var MsgNotificationTimer = "encrypt-msg-notification-timer";
 var MsgNotificationAutoClearTime = 0.034; //cleanup after two seconds
@@ -28,19 +26,16 @@ browser.alarms.onAlarm.addListener(function(alarm) {
 });
 
 function connected(p) {
-	/**
-  if (p.name == "strongpassword-content-port") { port = portFromCS; }
-  if (p.name == "strongpassword-option-port") { port = portFromOS; }
-  
+   /**
+  (p.name == "strongpassword-option-port") 
+  (p.name == "strongpassword-content-port") 
+  (p.name == "strongpassword-content-port0") 
   **/
-  if (debug) console.log(p.name);
-  ports[p.name] = p;
-  ports[p.name].postMessage({greeting: "Hello from background script!"});
-  ports[p.name].onMessage.addListener(function(m) {
-  /**portFromCS = p;
-  portFromCS.postMessage({greeting: "Hello from background script!"});
-  portFromCS.onMessage.addListener(function(m) {
-	  **/
+  if (debug) console.log(p);
+  if (debug) console.log("port"+p.sender.tab.id + " assigned to "+ p.sender.url);
+  port["port"+p.sender.tab.id] = p;
+  port["port"+p.sender.tab.id].postMessage({greeting: "register-replyport", replyPort: "port"+p.sender.tab.id});
+  port["port"+p.sender.tab.id].onMessage.addListener(function(m) {
     if (debug) console.log("Background script received:" + m.greeting);
 		if (m.greeting == "encrypt-success") {
 			if (debug) console.log("opening notification");
@@ -135,14 +130,14 @@ function connected(p) {
 				//error handling
 				if (passwordvalue == "") {
 					if (debug) console.log("NULL password value" );
-					ports[m.port].postMessage({greeting: "encrypt-failed-null-value"});
+					port[m.port].postMessage({greeting: "encrypt-failed-null-value"});
 				} else if (domainvalue == "") {
 					if (debug) console.log("NULL domain value" );
-					ports[m.port].postMessage({greeting: "encrypt-failed-null-domain-value"});
+					port[m.port].postMessage({greeting: "encrypt-failed-null-domain-value"});
 				} else if (hostname === null) {
 					//invalid hostname
 					if (debug) console.log("NULL hostname value" );
-					ports[m.port].postMessage({greeting: "encrypt-failed-domain-value"});
+					port[m.port].postMessage({greeting: "encrypt-failed-domain-value"});
 				} else {
 					//derive a password
 					if (debug) console.log("Hostname: " + hostname);
@@ -193,7 +188,7 @@ function connected(p) {
 /**
 Have to split this part due to async argon2
 **/
-function continueEncryptPassword(finalBase64String, hostname, complexdomains, port) {
+function continueEncryptPassword(finalBase64String, hostname, complexdomains, replyPort) {
 	if (debug) console.log(finalBase64String);
 	
 	//process domains that have complexity requirements
@@ -210,7 +205,7 @@ function continueEncryptPassword(finalBase64String, hostname, complexdomains, po
 	
 	//send back the derivative
 	if (debug) console.log("encrypt-success");
-	ports[port].postMessage({greeting: "encrypt-success", derivative: finalBase64String});
+	port[replyPort].postMessage({greeting: "encrypt-success", derivative: finalBase64String});
 }
 
 
@@ -227,8 +222,13 @@ browser.contextMenus.create({
 
 browser.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "encrypt-password") {
-		if (debug) console.log("encrypting password");
-		ports["strongpassword-content-port"].postMessage({greeting: "encrypt-password"});
+		if (debug) console.log("encrypting password via menu");
+		var gettingCurrent = browser.tabs.query({active: true});
+		if (debug) console.log(gettingCurrent);
+		gettingCurrent.then((res) => {
+			if (debug) console.log(res[0]);
+			port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
+		});
 	}
 });
 
@@ -263,5 +263,12 @@ gettingAllCommands.then((commands) => {
  
 //debug via about:debugging
 browser.commands.onCommand.addListener((command) => {
-	ports["strongpassword-content-port"].postMessage({greeting: "encrypt-password"});
+	if (debug) console.log("encrypting password via shortcut");
+	var gettingCurrent = browser.tabs.query({active: true});
+	if (debug) console.log(gettingCurrent);
+	gettingCurrent.then((res) => {
+		if (debug) console.log(res[0]);
+		port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
+	});
 });
+
