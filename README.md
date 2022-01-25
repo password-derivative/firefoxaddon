@@ -27,6 +27,7 @@ Other technical permissions:
 - Alarms: It uses alarms to clean up the notification in 2 seconds.
 - ContextMenus: To add the 'Encrypt password' option.
 - Storage: To store the settings of the addon locally in your browser.
+- ActiveTab: To let the Ctrl-Space shortcut encrypt the password in the active tab.
 
 # Libraries
 - CryptoJS from code.google.com (v3.1.2)
