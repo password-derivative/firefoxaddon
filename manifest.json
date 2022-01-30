@@ -33,6 +33,7 @@
   "background": {
     "scripts": [
 		"./lib/core-min.js",
+		"./lib/cipher-core-min.js",
 		"./lib/aes-min.js",
 		"./lib/hmac-sha256.js",
 		"./lib/hmac-sha384.js",
