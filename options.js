@@ -1,6 +1,7 @@
 const debug = false;
 const commandName = 'toggle-feature';
 
+let DEFAULTrightclickmenu = "alwaysdisplay";
 let DEFAULTpasswordsalt = "";
 let DEFAULTdomainsalt = "";
 let DEFAULTpasswordsize = 16;
@@ -61,6 +62,7 @@ async function updateUI() {
   
 	//get configuration
 	var getConfigurationItem = browser.storage.local.get({
+	  rightclickmenu: DEFAULTrightclickmenu,
 	  passwordsize: DEFAULTpasswordsize,
 	  hashalgo: DEFAULThashalgo,
 	  complexdomains: DEFAULTcomplexdomains,
@@ -77,6 +79,7 @@ async function updateUI() {
 	
 	getConfigurationItem.then((res) => {
 		if (debug) console.log(getConfigurationItem);
+		document.querySelector("#rightclickmenu").value = res.rightclickmenu;
 		document.querySelector("#passwordsize").value = res.passwordsize;
 		document.querySelector("#hashalgo").value = res.hashalgo;
 		document.querySelector("#complexdomains").value = res.complexdomains;
@@ -113,6 +116,7 @@ async function resetShortcut() {
  * Save the chosen options
  **/
 function saveOptions(e) {
+	var rightclickmenu = document.querySelector("#rightclickmenu").value;
 	var passwordsize = document.querySelector("#passwordsize").value;
 	var cpu = document.querySelector("#cpu").value;
 	var memory = document.querySelector("#memory").value;
@@ -146,9 +150,35 @@ function saveOptions(e) {
 	var domainsalt = domainsalt.replace(/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+\/=]/gi, '');
 	document.querySelector("#domainsalt").value = domainsalt;
 	
-  if (debug) console.log("saving options");
+	if (debug) console.log("saving options");
+  
+	//Add or remove rightclickmenu if so desired
+	browser.contextMenus.removeAll();
+	if (rightclickmenu == "alwaysdisplay") {
+		/**
+		Create a context menu for password fields
+		**/
+		browser.contextMenus.create({
+			id: "encrypt-password",
+			title: "Encrypt password",
+			contexts: ["password"],
+		});
+
+		browser.contextMenus.onClicked.addListener((info, tab) => {
+			if (info.menuItemId === "encrypt-password") {
+				if (debug) console.log("encrypting password via menu");
+				var gettingCurrent = browser.tabs.query({active: true});
+				if (debug) console.log(gettingCurrent);
+				gettingCurrent.then((res) => {
+					if (debug) console.log(res[0]);
+					port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
+				});
+			}
+		});
+	}
   
   var optionschosen = {
+	  rightclickmenu: rightclickmenu,
 	  passwordsize: document.querySelector("#passwordsize").value,
 	  hashalgo: document.querySelector("#hashalgo").value,
 	  complexdomains: document.querySelector("#complexdomains").value,

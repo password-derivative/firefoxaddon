@@ -17,7 +17,11 @@
       <button id="update">Update keyboard shortcut</button>
       <button id="reset">Reset keyboard shortcut</button>
 	<br />
-	<label>Right-click menu item in password field: </label> <b>always active</b>.
+	<label>Right-click menu item in password field: </label> 
+	<select name="rightclickmenu" id="rightclickmenu">
+		<option value="alwaysdisplay">Always display</option>
+		<option value="neverdisplay">Never display</option>
+	</select>
 	<p class="settings-title">Basic password derivative settings</p>
       <label>Requested derivative size</label>
       <input type="text" id="passwordsize" size="4"> characters <div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 1 - Maximum: 44</span></div>

@@ -8,6 +8,7 @@ let port = [];
 var MsgNotification = "encrypt-msg-notification";
 var MsgNotificationTimer = "encrypt-msg-notification-timer";
 var MsgNotificationAutoClearTime = 0.034; //cleanup after two seconds
+let DEFAULTrightclickmenu = "alwaysdisplay";
 let DEFAULTpasswordsalt = "";
 let DEFAULTdomainsalt = "";
 let DEFAULTpasswordsize = 16;
@@ -273,25 +274,33 @@ function continueEncryptPassword(finalBase64String, hostname, complexdomains, re
 
 browser.runtime.onConnect.addListener(connected);
 
-/**
-Create a context menu for password fields
-**/
-browser.contextMenus.create({
-    id: "encrypt-password",
-    title: "Encrypt password",
-    contexts: ["password"],
-});
+var getConfigurationItem = browser.storage.local.get({
+			  rightclickmenu: DEFAULTrightclickmenu
+			});
+			
+getConfigurationItem.then((res) => {
+		if (res.rightclickmenu == "alwaysdisplay") {
+			/**
+			Create a context menu for password fields
+			**/
+			browser.contextMenus.create({
+				id: "encrypt-password",
+				title: "Encrypt password",
+				contexts: ["password"],
+			});
 
-browser.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === "encrypt-password") {
-		if (debug) console.log("encrypting password via menu");
-		var gettingCurrent = browser.tabs.query({active: true});
-		if (debug) console.log(gettingCurrent);
-		gettingCurrent.then((res) => {
-			if (debug) console.log(res[0]);
-			port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
-		});
-	}
+			browser.contextMenus.onClicked.addListener((info, tab) => {
+				if (info.menuItemId === "encrypt-password") {
+					if (debug) console.log("encrypting password via menu");
+					var gettingCurrent = browser.tabs.query({active: true});
+					if (debug) console.log(gettingCurrent);
+					gettingCurrent.then((res) => {
+						if (debug) console.log(res[0]);
+						port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
+					});
+				}
+			});
+		}
 });
 
 /**
