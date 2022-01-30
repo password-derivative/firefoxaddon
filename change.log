@@ -1,3 +1,6 @@
+v1.3 feature release
+Added the possibility to add salt as an advanced strengthening method
+
 v1.2.2 bugfix release
 Fixed an issue where simply visiting a new website screen broke the functionality on previous websites
 

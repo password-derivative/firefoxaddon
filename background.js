@@ -8,6 +8,8 @@ let port = [];
 var MsgNotification = "encrypt-msg-notification";
 var MsgNotificationTimer = "encrypt-msg-notification-timer";
 var MsgNotificationAutoClearTime = 0.034; //cleanup after two seconds
+let DEFAULTpasswordsalt = "";
+let DEFAULTdomainsalt = "";
 let DEFAULTpasswordsize = 16;
 let DEFAULTcomplexdomains = "";
 let DEFAULThashalgo = "sha512";
@@ -24,6 +26,43 @@ browser.alarms.onAlarm.addListener(function(alarm) {
 	browser.alarms.clear(MsgNotificationTimer);	
   }
 });
+
+/**
+ To convert numbers in a WordArray to String
+ **/
+var toBytesInt32=function(num) {
+    var ascii='';
+    for (let i=3;i>=0;i--) {
+		//ascii+=((num>>(8*i))&255);
+		//ascii+="|";
+        ascii+=String.fromCharCode((num>>(8*i))&255);
+    }
+    return ascii;
+};
+
+/**
+ To convert an entire WordArray to String
+ **/
+var wordArrayToBytesInt32=function(wordarray) {
+    var ascii='';
+	
+	wordarray.words.forEach(function (item, index) {
+		ascii+=toBytesInt32(item);
+	});
+		
+    return ascii;
+};
+
+/**
+ To convert Strings to numbers in a WordArray
+ **/
+var fromBytesInt32=function(numString) {
+    var result=0;
+    for (let i=3;i>=0;i--) {
+        result+=numString.charCodeAt(3-i)<<(8*i);
+    }
+    return result;
+};
 
 function connected(p) {
    /**
@@ -81,9 +120,17 @@ function connected(p) {
 				"message": content
 			  });
 			  browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+		} else if (m.greeting == "random-bytes") {
+			if (debug) console.log(m.amount +" random bytes for "+ m.field);
+			var randomByteArray = CryptoJS.lib.WordArray.random(m.amount);
+			var randomByteString = CryptoJS.enc.Base64.stringify(randomByteArray);
+			if (debug) console.log(randomByteString);
+			port[m.port].postMessage({greeting: "random-bytes-success", randomByteString: randomByteString, field: m.field});
 		} else if (m.greeting == "encrypt-password") {
 			var passwordvalue = "";
 			var domainvalue = "";
+			var passwordsalt = "";
+			var domainsalt = "";
 			var passwordsize = DEFAULTpasswordsize;
 			var complexdomains = DEFAULTcomplexdomains;
 			var hashalgo = DEFAULThashalgo;
@@ -97,6 +144,8 @@ function connected(p) {
 			
 			//get configuration
 			var getConfigurationItem = browser.storage.local.get({
+			  passwordsalt: DEFAULTpasswordsalt,
+			  domainsalt: DEFAULTdomainsalt,
 			  passwordsize: DEFAULTpasswordsize,
 			  complexdomains: DEFAULTcomplexdomains,
 			  hashalgo: DEFAULThashalgo,
@@ -111,10 +160,14 @@ function connected(p) {
 				if (debug) console.log(res);
 				passwordsize = res.passwordsize;
 				if (m.passwordsize) passwordsize = m.passwordsize;
-				complexdomains = res.complexdomains;
-				if (m.complexdomains) complexdomains = m.complexdomains;
 				hashalgo = res.hashalgo;
 				if (m.hashalgo) hashalgo = m.hashalgo;
+				complexdomains = res.complexdomains;
+				if (m.complexdomains) complexdomains = m.complexdomains;
+				passwordsalt = res.passwordsalt;
+				if (m.passwordsalt) passwordsalt = m.passwordsalt;
+				domainsalt = res.domainsalt;
+				if (m.domainsalt) domainsalt = m.domainsalt;
 				cpu = res.cpu;
 				if (m.cpu) cpu = m.cpu;
 				memory = res.memory;
@@ -126,6 +179,15 @@ function connected(p) {
 				
 				//get tld
 				var hostname = tldjs.getDomain(domainvalue);
+				
+				//set salted variables
+				var passwordsaltWordArray = CryptoJS.enc.Base64.parse(passwordsalt);
+				var domainsaltWordArray = CryptoJS.enc.Base64.parse(domainsalt);
+				var saltedpasswordvalue = wordArrayToBytesInt32(passwordsaltWordArray) + passwordvalue;
+				var saltedhostnamevalue = wordArrayToBytesInt32(domainsaltWordArray) + hostname;
+				
+				//if (debug) console.log("saltedpassword value: "+ saltedpasswordvalue);
+				//if (debug) console.log("saltedhostname value: "+ saltedhostnamevalue);
 				
 				//error handling
 				if (passwordvalue == "") {
@@ -144,27 +206,27 @@ function connected(p) {
 					if (debug) console.log("Using algo: "+ hashalgo);
 					switch(hashalgo) {
 					  case "sha256":
-						var newHMAC = CryptoJS.HmacSHA256(hostname, passwordvalue);
+						var newHMAC = CryptoJS.HmacSHA256(saltedhostnamevalue, saltedpasswordvalue);
 						var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
 						var finalBase64String = base64String.slice(0, passwordsize);
 						continueEncryptPassword(finalBase64String, hostname, complexdomains, m.port);
 						break;
 					  case "sha384":
-						var newHMAC = CryptoJS.HmacSHA384(hostname, passwordvalue);
+						var newHMAC = CryptoJS.HmacSHA384(saltedhostnamevalue, saltedpasswordvalue);
 						var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
 						var finalBase64String = base64String.slice(0, passwordsize);
 						continueEncryptPassword(finalBase64String, hostname, complexdomains, m.port);
 						break;
 					  case "sha3":
-						var newHMAC = CryptoJS.HmacSHA3(hostname, passwordvalue);
+						var newHMAC = CryptoJS.HmacSHA3(saltedhostnamevalue, saltedpasswordvalue);
 						var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
 						var finalBase64String = base64String.slice(0, passwordsize);
 						continueEncryptPassword(finalBase64String, hostname, complexdomains, m.port);
 						break;
 					  case "scrypt":
 						var enc = new TextEncoder(); // always utf-8
-						var passwordvalueenc = enc.encode(passwordvalue);
-						var hostnameenc = enc.encode(hostname);
+						var passwordvalueenc = enc.encode(saltedpasswordvalue);
+						var hostnameenc = enc.encode(saltedhostnamevalue);
 						var scryptarr = scrypt.syncScrypt(passwordvalueenc, hostnameenc, parseInt(cpu), parseInt(memory), parseInt(parallel), parseInt(hashalgosize));
 						
 						var dec = new TextDecoder(); // always utf-8
@@ -174,7 +236,7 @@ function connected(p) {
 						continueEncryptPassword(finalBase64String, hostname, complexdomains, m.port);
 						break;
 					  default:
-						var newHMAC = CryptoJS.HmacSHA512(hostname, passwordvalue);
+						var newHMAC = CryptoJS.HmacSHA512(saltedhostnamevalue, saltedpasswordvalue);
 						var base64String = CryptoJS.enc.Base64.stringify(newHMAC);
 						var finalBase64String = base64String.slice(0, passwordsize);
 						continueEncryptPassword(finalBase64String, hostname, complexdomains, m.port);
@@ -268,7 +330,19 @@ browser.commands.onCommand.addListener((command) => {
 	if (debug) console.log(gettingCurrent);
 	gettingCurrent.then((res) => {
 		if (debug) console.log(res[0]);
-		port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
+		try { port["port"+res[0].id].postMessage({greeting: "encrypt-password"}); }
+		catch (_) {
+			if (debug) console.log("opening notification");
+			var title = browser.i18n.getMessage("notificationTitle");
+			var content = browser.i18n.getMessage("notificationContentShortcutFailedToFindContentPort", "x");
+			browser.notifications.create(MsgNotification, {
+				"type": "basic",
+				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
+				"title": title,
+				"message": content
+			});
+			browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+		}
 	});
 });
 

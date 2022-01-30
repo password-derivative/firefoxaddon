@@ -45,6 +45,17 @@
 		<br />
 		<i>Fill in one domain per line. Format &lt;domain&gt; &lt;extracharacters&gt;</i><br />
 		</div>
+		<div id="saltsettings">
+		<p class="settings-title">Advanced rainbox table protection options</p>
+		<label>Password salt (base64 encoded)</label>  <div class="tooltip smalltooltip">help(?)<span class="tooltiptext">The salt is prepended to the password.<br />(before calculating the derivative)</span></div> <br />
+		<textarea id="passwordsalt" name="passwordsalt" rows="4" cols="50"></textarea>
+		<br />Randomly generate: <button id="generatepasswordsalt32" type="button">32bit</button><button id="generatepasswordsalt64" type="button">64bit</button><button id="generatepasswordsalt128" type="button">128bit</button><button id="generatepasswordsalt256" type="button">256bit</button>
+		<br />
+		<label>Domain salt (base64 encoded)</label>  <div class="tooltip smalltooltip">help(?)<span class="tooltiptext">The salt is prepended to the domain.<br />(before calculating the derivative)</span></div> <br />
+		<textarea id="domainsalt" name="domainsalt" rows="4" cols="50"></textarea>
+		<br />Randomly generate: <button id="generatedomainsalt32" type="button">32bit</button><button id="generatedomainsalt64" type="button">64bit</button><button id="generatedomainsalt128" type="button">128bit</button><button id="generatedomainsalt256" type="button">256bit</button>
+		<br />
+		</div>
 		<div id="scryptsettings" style="display: none">
 			<p class="settings-title">Advanced scrypt settings</p>
 				<table class="calculation">

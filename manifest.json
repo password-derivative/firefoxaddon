@@ -3,7 +3,7 @@
   "description": "Protect your passwords by ensuring none of them are the same. Convert your password to a domain-based unique derivative, using non-reversible hash encryption.",
   "homepage_url": "https://github.com/password-derivative/firefoxaddon",
   "manifest_version": 2,
-  "version": "1.2.2",
+  "version": "1.3",
   "default_locale": "en",
   "icons": {
     "48": "icons/link-48.png"
@@ -32,7 +32,8 @@
 
   "background": {
     "scripts": [
-		"./lib/aes.js",
+		"./lib/core-min.js",
+		"./lib/aes-min.js",
 		"./lib/hmac-sha256.js",
 		"./lib/hmac-sha384.js",
 		"./lib/hmac-sha512.js",

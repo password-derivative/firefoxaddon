@@ -1,6 +1,8 @@
 const debug = false;
 const commandName = 'toggle-feature';
 
+let DEFAULTpasswordsalt = "";
+let DEFAULTdomainsalt = "";
 let DEFAULTpasswordsize = 16;
 let DEFAULTcomplexdomains = "";
 let DEFAULThashalgo = "sha512";
@@ -30,6 +32,11 @@ myPort.onMessage.addListener(function(m) {
 			  document.querySelector("#outcome").value = m.derivative;
 			}
 		break;
+		case "random-bytes-success":
+			if (m.field) {
+			  document.querySelector("#"+m.field).value = m.randomByteString;
+			}
+		break;
 		case "encrypt-failed-null-value":
 			document.querySelector("#outcome").value = "the password is empty";
 		break;
@@ -55,8 +62,10 @@ async function updateUI() {
 	//get configuration
 	var getConfigurationItem = browser.storage.local.get({
 	  passwordsize: DEFAULTpasswordsize,
-	  complexdomains: DEFAULTcomplexdomains,
 	  hashalgo: DEFAULThashalgo,
+	  complexdomains: DEFAULTcomplexdomains,
+	  passwordsalt: DEFAULTpasswordsalt,
+	  domainsalt: DEFAULTdomainsalt,
 	  salt: DEFAULTsalt,
 	  cpu: DEFAULTcpu,
 	  memory: DEFAULTmemory,
@@ -69,8 +78,10 @@ async function updateUI() {
 	getConfigurationItem.then((res) => {
 		if (debug) console.log(getConfigurationItem);
 		document.querySelector("#passwordsize").value = res.passwordsize;
-		document.querySelector("#complexdomains").value = res.complexdomains;
 		document.querySelector("#hashalgo").value = res.hashalgo;
+		document.querySelector("#complexdomains").value = res.complexdomains;
+		document.querySelector("#passwordsalt").value = res.passwordsalt;
+		document.querySelector("#domainsalt").value = res.domainsalt;
 		document.querySelector("#salt").value = res.salt;
 		document.querySelector("#cpu").value = res.cpu;
 		document.querySelector("#memory").value = res.memory;
@@ -107,6 +118,8 @@ function saveOptions(e) {
 	var memory = document.querySelector("#memory").value;
 	var parallel = document.querySelector("#parallel").value;
 	var hashalgosize = document.querySelector("#hashalgosize").value;
+	var passwordsalt = document.querySelector("#passwordsalt").value;
+	var domainsalt = document.querySelector("#domainsalt").value;
 	
 	if (isNaN(passwordsize)) document.querySelector("#passwordsize").value = DEFAULTpasswordsize; //size needs to be a number
 	if (passwordsize < 1) document.querySelector("#passwordsize").value = 44; //smallest size the derivative addon supports
@@ -127,12 +140,20 @@ function saveOptions(e) {
 	if (hashalgosize < 60) document.querySelector("#hashalgosize").value = DEFAULThashalgosize; //smallest size the derivative addon supports
 	if (hashalgosize > 256) document.querySelector("#hashalgosize").value = DEFAULThashalgosize; //largest size the derivative addon supports
 	
+	//Remove non-base64 characters
+	var passwordsalt = passwordsalt.replace(/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+\/=]/gi, '');
+	document.querySelector("#passwordsalt").value = passwordsalt;
+	var domainsalt = domainsalt.replace(/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+\/=]/gi, '');
+	document.querySelector("#domainsalt").value = domainsalt;
+	
   if (debug) console.log("saving options");
   
   var optionschosen = {
 	  passwordsize: document.querySelector("#passwordsize").value,
-	  complexdomains: document.querySelector("#complexdomains").value,
 	  hashalgo: document.querySelector("#hashalgo").value,
+	  complexdomains: document.querySelector("#complexdomains").value,
+	  passwordsalt: passwordsalt,
+	  domainsalt: domainsalt,
 	  salt: DEFAULTsalt,
 	  cpu: document.querySelector("#cpu").value,
 	  memory: document.querySelector("#memory").value,
@@ -186,23 +207,62 @@ async function verifyUI() {
 	document.querySelector("#scryptsettings").style.display = "none";
 }
 
-function performCalculate() {
+function performCalculate() {	
+	var passwordsize = document.querySelector("#passwordsize").value;
+	var cpu = document.querySelector("#cpu").value;
+	var memory = document.querySelector("#memory").value;
+	var parallel = document.querySelector("#parallel").value;
+	var hashalgosize = document.querySelector("#hashalgosize").value;
+	var passwordsalt = document.querySelector("#passwordsalt").value;
+	var domainsalt = document.querySelector("#domainsalt").value;
+	
+	if (isNaN(passwordsize)) passwordsize = DEFAULTpasswordsize; //size needs to be a number
+	if (passwordsize < 1) passwordsize = 44; //smallest size the derivative addon supports
+	if (passwordsize > 44) passwordsize = 44; //largest size HMAC256 in BASE64 supports
+	
+	//CPU must be larger than 1, a power of 2 and less than 2^(128 * memory / 8)
+	//Protected by dropdown field to satisfy this requirement
+	if (isNaN(cpu)) cpu = DEFAULTcpu;
+	if (cpu < 1) cpu = DEFAULTcpu; //smallest size SCrypt supports
+	if (cpu > 65536) cpu = DEFAULTcpu; //largest size the derivative addon supports
+	if (isNaN(memory)) memory = DEFAULTmemory;
+	if (memory < 1) memory = DEFAULTmemory; //smallest size SCrypt supports
+	if (memory > 65536) memory = DEFAULTmemory; //largest size the derivative addon supports
+	if (isNaN(parallel)) parallel = DEFAULTparallel;
+	if (parallel < 1) parallel = DEFAULTparallel; //smallest size SCrypt supports
+	if (parallel > 44) parallel = DEFAULTparallel; //largest size the derivative addon supports
+	if (isNaN(hashalgosize)) hashalgosize = DEFAULThashalgosize;
+	if (hashalgosize < 60) hashalgosize = DEFAULThashalgosize; //smallest size the derivative addon supports
+	if (hashalgosize > 256) hashalgosize = DEFAULThashalgosize; //largest size the derivative addon supports
+	
+	//Remove non-base64 characters
+	var passwordsalt = document.querySelector("#passwordsalt").value;
+	passwordsalt = passwordsalt.replace(/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+\/=]/gi, '');
+	var domainsalt = document.querySelector("#domainsalt").value
+	domainsalt = domainsalt.replace(/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+\/=]/gi, '');
+	
+	//Set algo field
 	document.querySelector("#algooutcome").value = document.querySelector("#hashalgo").value;
 	
+	//request calculation
 	myPort.postMessage({greeting: "encrypt-password", port: replyPort,
 						domainvalue: document.querySelector("#domain").value, 
 						passwordvalue: document.querySelector("#password").value, 
-						passwordsize: document.querySelector("#passwordsize").value, 
+						passwordsize: passwordsize, 
 						hashalgo: document.querySelector("#hashalgo").value,
-					    cpu: document.querySelector("#cpu").value,
-						memory: document.querySelector("#memory").value,
-						parallel: document.querySelector("#parallel").value,
-						hashalgosize: document.querySelector("#hashalgosize").value
+						passwordsalt: passwordsalt,
+						domainsalt: domainsalt,
+					    cpu: cpu,
+						memory: parallel,
+						parallel: parallel,
+						hashalgosize: hashalgosize
 						});
 						
 	//get configuration
 	var getConfigurationItem = browser.storage.local.get({
 	  hashalgo: DEFAULThashalgo,
+	  passwordsalt: DEFAULTpasswordsalt,
+	  domainsalt: DEFAULTdomainsalt,
 	  salt: DEFAULTsalt,
 	  cpu: DEFAULTcpu,
 	  memory: DEFAULTmemory,
@@ -216,6 +276,8 @@ function performCalculate() {
 		if (debug) console.log(getConfigurationItem);
 		var notsaved = false;
 		if (document.querySelector("#hashalgo").value != res.hashalgo) notsaved = true;
+		if (document.querySelector("#passwordsalt").value != res.passwordsalt) notsaved = true;
+		if (document.querySelector("#domainsalt").value != res.domainsalt) notsaved = true;
 		if (document.querySelector("#salt").value != res.salt) notsaved = true;
 		if (document.querySelector("#cpu").value != res.cpu) notsaved = true;
 		if (document.querySelector("#memory").value != res.memory) notsaved = true;
@@ -226,10 +288,75 @@ function performCalculate() {
 	});
 	
 }
+
+function performGeneratepasswordsalt32() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 32,
+					field: "passwordsalt"
+					});
+}
+function performGeneratepasswordsalt64() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 64,
+					field: "passwordsalt"
+					});
+}
+function performGeneratepasswordsalt128() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 128,
+					field: "passwordsalt"
+					});
+}
+function performGeneratepasswordsalt256() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 256,
+					field: "passwordsalt"
+					});
+}
+function performGeneratedomainsalt32() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 32,
+					field: "domainsalt"
+					});
+}
+function performGeneratedomainsalt64() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 64,
+					field: "domainsalt"
+					});
+}
+function performGeneratedomainsalt128() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 128,
+					field: "domainsalt"
+					});
+}
+function performGeneratedomainsalt256() {
+	if (debug) console.log("requesting random-bytes");
+	myPort.postMessage({greeting: "random-bytes", port: replyPort,
+					amount: 256,
+					field: "domainsalt"
+					});
+}
+
 /**
  * Update the UI when the page loads.
  */
 document.addEventListener('DOMContentLoaded', updateUI);
+
+/**
+ * Handle tab clicks
+ */
+document.querySelector('#basicoptions').addEventListener('click', basicUI);
+document.querySelector('#advancedoptions').addEventListener('click', advancedUI);
+document.querySelector('#verifyoptions').addEventListener('click', verifyUI);
 
 /**
  * Handle update and reset button clicks
@@ -239,6 +366,12 @@ document.querySelector('#reset').addEventListener('click', resetShortcut)
 document.querySelector("form").addEventListener("submit", saveOptions);
 document.querySelector('#calculate').addEventListener('click', performCalculate);
 
-document.querySelector('#basicoptions').addEventListener('click', basicUI);
-document.querySelector('#advancedoptions').addEventListener('click', advancedUI);
-document.querySelector('#verifyoptions').addEventListener('click', verifyUI);
+document.querySelector('#generatepasswordsalt32').addEventListener('click', performGeneratepasswordsalt32);
+document.querySelector('#generatepasswordsalt64').addEventListener('click', performGeneratepasswordsalt64);
+document.querySelector('#generatepasswordsalt128').addEventListener('click', performGeneratepasswordsalt128);
+document.querySelector('#generatepasswordsalt256').addEventListener('click', performGeneratepasswordsalt256);
+document.querySelector('#generatedomainsalt32').addEventListener('click', performGeneratedomainsalt32);
+document.querySelector('#generatedomainsalt64').addEventListener('click', performGeneratedomainsalt64);
+document.querySelector('#generatedomainsalt128').addEventListener('click', performGeneratedomainsalt128);
+document.querySelector('#generatedomainsalt256').addEventListener('click', performGeneratedomainsalt256);
+

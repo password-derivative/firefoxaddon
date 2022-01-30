@@ -32,5 +32,10 @@
   "notificationContentFailedInvalidDomainValue": {
     "message": "Encryption failed: the domain is not a valid domain.",
     "description": "Tells the user that the domain has not been filled in correctly."
+  },
+  
+  "notificationContentShortcutFailedToFindContentPort": {
+    "message": "Encryption failed: the current tab needs to be reloaded or is not a normal webpage.",
+    "description": "Tells the user that the solution in case a port cannot be found."
   }
 }
