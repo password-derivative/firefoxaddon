@@ -12,16 +12,21 @@
   <form>
   <div id="basicsettings" style="display: block">
 	<p class="settings-title">Usability settings</p>
+	<div id="shortcutrow">
       <label>Keyboard shortcut</label>
       <input type="text" id="shortcut" >
       <button id="update">Update keyboard shortcut</button>
       <button id="reset">Reset keyboard shortcut</button>
+	</div>
 	<br />
+	<div id="rightclickmenurow">
 	<label>Right-click menu item in password field: </label> 
 	<select name="rightclickmenu" id="rightclickmenu">
 		<option value="alwaysdisplay">Always display</option>
 		<option value="neverdisplay">Never display</option>
 	</select>
+	</div>
+	<p id="mobilehint" style="display:none">On Firefox for Android there's no right-click menu or keyboard shortcut. Instead, tap in the password field and then tap this extension's toolbar/menu icon to fill in a derivative.</p>
 	<p class="settings-title">Basic password derivative settings</p>
       <label>Requested derivative size</label>
       <input type="text" id="passwordsize" size="4"> characters <div class="tooltip smalltooltip">(?)<span class="tooltiptext">Minimum: 1 - Maximum: 44</span></div>

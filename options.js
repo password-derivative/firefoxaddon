@@ -53,11 +53,30 @@ myPort.onMessage.addListener(function(m) {
  * Update the UI: set the value of the shortcut textbox.
  */
 async function updateUI() {
-	let commands = await browser.commands.getAll();
-	for (command of commands) {
-		if (command.name === commandName) {
-		  document.querySelector('#shortcut').value = command.shortcut;
+	// browser.commands (keyboard shortcuts) doesn't exist on Firefox for
+	// Android, so hide that row instead of calling an API that isn't there.
+	if (browser.commands) {
+		let commands = await browser.commands.getAll();
+		for (command of commands) {
+			if (command.name === commandName) {
+			  document.querySelector('#shortcut').value = command.shortcut;
+			}
 		}
+	} else {
+		document.querySelector('#shortcutrow').style.display = "none";
+	}
+
+	// browser.contextMenus doesn't exist on Firefox for Android either, so
+	// hide the right-click menu setting there too - there's nothing to
+	// right-click on mobile.
+	if (!browser.contextMenus) {
+		document.querySelector('#rightclickmenurow').style.display = "none";
+	}
+
+	// On a platform with neither shortcuts nor a context menu (i.e. mobile),
+	// point people at the toolbar/menu button instead.
+	if (!browser.commands && !browser.contextMenus) {
+		document.querySelector('#mobilehint').style.display = "block";
 	}
   
 	//get configuration
@@ -98,6 +117,7 @@ async function updateUI() {
  * Update the shortcut based on the value in the textbox.
  */
 async function updateShortcut() {
+  if (!browser.commands) return;
   await browser.commands.update({
     name: commandName,
     shortcut: document.querySelector('#shortcut').value
@@ -108,6 +128,7 @@ async function updateShortcut() {
  * Reset the shortcut and update the textbox.
  */
 async function resetShortcut() {
+  if (!browser.commands) return;
   await browser.commands.reset(commandName);
   updateUI();
 }
@@ -153,28 +174,32 @@ function saveOptions(e) {
 	if (debug) console.log("saving options");
   
 	//Add or remove rightclickmenu if so desired
-	browser.contextMenus.removeAll();
-	if (rightclickmenu == "alwaysdisplay") {
-		/**
-		Create a context menu for password fields
-		**/
-		browser.contextMenus.create({
-			id: "encrypt-password",
-			title: "Encrypt password",
-			contexts: ["password"],
-		});
+	//(contextMenus doesn't exist on Firefox for Android, so this whole
+	//block is skipped there - the toolbar button is used instead)
+	if (browser.contextMenus) {
+		browser.contextMenus.removeAll();
+		if (rightclickmenu == "alwaysdisplay") {
+			/**
+			Create a context menu for password fields
+			**/
+			browser.contextMenus.create({
+				id: "encrypt-password",
+				title: "Encrypt password",
+				contexts: ["password"],
+			});
 
-		browser.contextMenus.onClicked.addListener((info, tab) => {
-			if (info.menuItemId === "encrypt-password") {
-				if (debug) console.log("encrypting password via menu");
-				var gettingCurrent = browser.tabs.query({active: true});
-				if (debug) console.log(gettingCurrent);
-				gettingCurrent.then((res) => {
-					if (debug) console.log(res[0]);
-					port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
-				});
-			}
-		});
+			browser.contextMenus.onClicked.addListener((info, tab) => {
+				if (info.menuItemId === "encrypt-password") {
+					if (debug) console.log("encrypting password via menu");
+					var gettingCurrent = browser.tabs.query({active: true});
+					if (debug) console.log(gettingCurrent);
+					gettingCurrent.then((res) => {
+						if (debug) console.log(res[0]);
+						port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
+					});
+				}
+			});
+		}
 	}
   
   var optionschosen = {

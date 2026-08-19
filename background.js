@@ -20,13 +20,55 @@ let DEFAULTmemory = "8";
 let DEFAULTparallel = "1";
 let DEFAULThashalgosize = "64";
 
-browser.alarms.onAlarm.addListener(function(alarm) {
-  if (alarm.name == MsgNotificationTimer) {
-	if (debug) console.log("clean up the notification");
-	browser.notifications.clear(MsgNotification);
-	browser.alarms.clear(MsgNotificationTimer);	
-  }
-});
+if (browser.alarms) {
+  browser.alarms.onAlarm.addListener(function(alarm) {
+    if (alarm.name == MsgNotificationTimer) {
+	  if (debug) console.log("clean up the notification");
+	  if (browser.notifications) browser.notifications.clear(MsgNotification);
+	  browser.alarms.clear(MsgNotificationTimer);	
+    }
+  });
+}
+
+/**
+ Show a notification, if the notifications API is available.
+ Not every platform (e.g. Firefox for Android) is guaranteed to support it,
+ so this is a defensive wrapper instead of calling browser.notifications directly.
+ **/
+function notifyUser(titleKey, contentKey, contentSub) {
+	if (!browser.notifications) return;
+	var title = browser.i18n.getMessage(titleKey);
+	var content = browser.i18n.getMessage(contentKey, contentSub);
+	browser.notifications.create(MsgNotification, {
+		"type": "basic",
+		"iconUrl": browser.runtime.getURL("icons/link-48.png"),
+		"title": title,
+		"message": content
+	});
+	if (browser.alarms) {
+		browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+	}
+}
+
+/**
+ Ask the content script of the currently active tab to encrypt whatever
+ password field currently has focus. Shared by the context menu item
+ (desktop only), the keyboard shortcut (desktop only), and the toolbar
+ button (works on both desktop and Firefox for Android).
+ **/
+function triggerEncryptOnActiveTab() {
+	if (debug) console.log("encrypting password via toolbar button/menu/shortcut");
+	var gettingCurrent = browser.tabs.query({active: true, currentWindow: true});
+	if (debug) console.log(gettingCurrent);
+	gettingCurrent.then((res) => {
+		if (debug) console.log(res[0]);
+		try { port["port"+res[0].id].postMessage({greeting: "encrypt-password"}); }
+		catch (_) {
+			if (debug) console.log("could not find a content script port for this tab");
+			notifyUser("notificationTitle", "notificationContentShortcutFailedToFindContentPort", "x");
+		}
+	});
+}
 
 /**
  To convert numbers in a WordArray to String
@@ -79,48 +121,16 @@ function connected(p) {
     if (debug) console.log("Background script received:" + m.greeting);
 		if (m.greeting == "encrypt-success") {
 			if (debug) console.log("opening notification");
-			  var title = browser.i18n.getMessage("notificationTitle");
-			  var content = browser.i18n.getMessage("notificationContentSuccess", "x");
-			  browser.notifications.create(MsgNotification, {
-				"type": "basic",
-				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
-				"title": title,
-				"message": content
-			  });
-			  browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+			notifyUser("notificationTitle", "notificationContentSuccess", "x");
 		} else if (m.greeting == "encrypt-failed-null-value") {
 			if (debug) console.log("opening notification");
-			  var title = browser.i18n.getMessage("notificationTitle");
-			  var content = browser.i18n.getMessage("notificationContentFailedNullValue", "x");
-			  browser.notifications.create(MsgNotification, {
-				"type": "basic",
-				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
-				"title": title,
-				"message": content
-			  });
-			  browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+			notifyUser("notificationTitle", "notificationContentFailedNullValue", "x");
 		} else if (m.greeting == "encrypt-failed-null-domain-value") {
 			if (debug) console.log("opening notification");
-			  var title = browser.i18n.getMessage("notificationTitle");
-			  var content = browser.i18n.getMessage("notificationContentFailedNullDomainValue", "x");
-			  browser.notifications.create(MsgNotification, {
-				"type": "basic",
-				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
-				"title": title,
-				"message": content
-			  });
-			  browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+			notifyUser("notificationTitle", "notificationContentFailedNullDomainValue", "x");
 		} else if (m.greeting == "encrypt-failed-invalid-domain-value") {
 			if (debug) console.log("opening notification");
-			  var title = browser.i18n.getMessage("notificationTitle");
-			  var content = browser.i18n.getMessage("notificationContentFailedInvalidDomainValue", "x");
-			  browser.notifications.create(MsgNotification, {
-				"type": "basic",
-				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
-				"title": title,
-				"message": content
-			  });
-			  browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
+			notifyUser("notificationTitle", "notificationContentFailedInvalidDomainValue", "x");
 		} else if (m.greeting == "random-bytes") {
 			if (debug) console.log(m.amount +" random bytes for "+ m.field);
 			var randomByteArray = CryptoJS.lib.WordArray.random(m.amount);
@@ -274,84 +284,91 @@ function continueEncryptPassword(finalBase64String, hostname, complexdomains, re
 
 browser.runtime.onConnect.addListener(connected);
 
-var getConfigurationItem = browser.storage.local.get({
-			  rightclickmenu: DEFAULTrightclickmenu
-			});
-			
-getConfigurationItem.then((res) => {
-		if (res.rightclickmenu == "alwaysdisplay") {
-			/**
-			Create a context menu for password fields
-			**/
-			browser.contextMenus.create({
-				id: "encrypt-password",
-				title: "Encrypt password",
-				contexts: ["password"],
-			});
-
-			browser.contextMenus.onClicked.addListener((info, tab) => {
-				if (info.menuItemId === "encrypt-password") {
-					if (debug) console.log("encrypting password via menu");
-					var gettingCurrent = browser.tabs.query({active: true});
-					if (debug) console.log(gettingCurrent);
-					gettingCurrent.then((res) => {
-						if (debug) console.log(res[0]);
-						port["port"+res[0].id].postMessage({greeting: "encrypt-password"});
-					});
-				}
-			});
-		}
-});
-
 /**
- * Returns all of the registered extension commands for this extension
- * and their shortcut (if active).
- *
- * Since there is only one registered command in this sample extension,
- * the returned `commandsArray` will look like the following:
- *    [{
- *       name: "toggle-feature",
- *       description: "Send a 'toggle-feature' event to the extension"
- *       shortcut: "Ctrl+Shift+1"
- *    }]
- */
- 
-let gettingAllCommands = browser.commands.getAll();
-gettingAllCommands.then((commands) => {
-  for (let command of commands) {
-    // Note that this logs to the Add-on Debugger's console: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Debugging
-    // not the regular Web console.
-    if (debug) console.log(command);
-  }
-});
+ The context menu ("Encrypt password" on right click) is a desktop-only
+ feature - Firefox for Android does not implement the contextMenus/menus
+ API at all, so browser.contextMenus is undefined there. Guard it so the
+ background script doesn't throw and fail to load on mobile.
+ **/
+if (browser.contextMenus) {
+	var getConfigurationItem = browser.storage.local.get({
+				  rightclickmenu: DEFAULTrightclickmenu
+				});
+				
+	getConfigurationItem.then((res) => {
+			if (res.rightclickmenu == "alwaysdisplay") {
+				/**
+				Create a context menu for password fields
+				**/
+				browser.contextMenus.create({
+					id: "encrypt-password",
+					title: "Encrypt password",
+					contexts: ["password"],
+				});
 
-/**
- * Fired when a registered command is activated using a keyboard shortcut.
- *
- * In this sample extension, there is only one registered command: "Ctrl+Shift+1".
- * On Mac, this command will automatically be converted to "Command+Shift+1".
- */
- 
-//debug via about:debugging
-browser.commands.onCommand.addListener((command) => {
-	if (debug) console.log("encrypting password via shortcut");
-	var gettingCurrent = browser.tabs.query({active: true});
-	if (debug) console.log(gettingCurrent);
-	gettingCurrent.then((res) => {
-		if (debug) console.log(res[0]);
-		try { port["port"+res[0].id].postMessage({greeting: "encrypt-password"}); }
-		catch (_) {
-			if (debug) console.log("opening notification");
-			var title = browser.i18n.getMessage("notificationTitle");
-			var content = browser.i18n.getMessage("notificationContentShortcutFailedToFindContentPort", "x");
-			browser.notifications.create(MsgNotification, {
-				"type": "basic",
-				"iconUrl": browser.runtime.getURL("icons/link-48.png"),
-				"title": title,
-				"message": content
-			});
-			browser.alarms.create(MsgNotificationTimer, {delayInMinutes: MsgNotificationAutoClearTime});
-		}
+				browser.contextMenus.onClicked.addListener((info, tab) => {
+					if (info.menuItemId === "encrypt-password") {
+						triggerEncryptOnActiveTab();
+					}
+				});
+			}
 	});
-});
+}
+
+/**
+ Keyboard shortcuts (the "commands" API) only make sense where there is a
+ physical/software keyboard shortcut system - Firefox for Android doesn't
+ expose browser.commands, so guard it the same way as contextMenus.
+ **/
+if (browser.commands) {
+	/**
+	 * Returns all of the registered extension commands for this extension
+	 * and their shortcut (if active).
+	 *
+	 * Since there is only one registered command in this sample extension,
+	 * the returned `commandsArray` will look like the following:
+	 *    [{
+	 *       name: "toggle-feature",
+	 *       description: "Send a 'toggle-feature' event to the extension"
+	 *       shortcut: "Ctrl+Shift+1"
+	 *    }]
+	 */
+	 
+	let gettingAllCommands = browser.commands.getAll();
+	gettingAllCommands.then((commands) => {
+	  for (let command of commands) {
+	    // Note that this logs to the Add-on Debugger's console: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Debugging
+	    // not the regular Web console.
+	    if (debug) console.log(command);
+	  }
+	});
+
+	/**
+	 * Fired when a registered command is activated using a keyboard shortcut.
+	 *
+	 * In this sample extension, there is only one registered command: "Ctrl+Shift+1".
+	 * On Mac, this command will automatically be converted to "Command+Shift+1".
+	 */
+	 
+	//debug via about:debugging
+	browser.commands.onCommand.addListener((command) => {
+		triggerEncryptOnActiveTab();
+	});
+}
+
+/**
+ The toolbar/menu button is the mobile-friendly way to trigger encryption:
+ Firefox for Android has no right-click context menu and no keyboard
+ shortcuts, but it does support browserAction, showing the icon in the
+ extension menu (and optionally pinned to the toolbar). Tapping it asks
+ the content script of the active tab to encrypt whatever password field
+ currently has focus - the same thing the context menu item and the
+ keyboard shortcut do on desktop. There is no default_popup set in the
+ manifest, so this onClicked listener fires directly.
+ **/
+if (browser.browserAction) {
+	browser.browserAction.onClicked.addListener((tab) => {
+		triggerEncryptOnActiveTab();
+	});
+}
 
