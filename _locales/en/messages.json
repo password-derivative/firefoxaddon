@@ -37,5 +37,10 @@
   "notificationContentShortcutFailedToFindContentPort": {
     "message": "Encryption failed: the current tab needs to be reloaded or is not a normal webpage.",
     "description": "Tells the user that the solution in case a port cannot be found."
+  },
+
+  "inlineIconTitle": {
+    "message": "Encrypt password (Password derivative extension)",
+    "description": "Tooltip for the clickable icon shown inside password fields."
   }
 }
