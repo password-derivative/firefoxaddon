@@ -1,3 +1,7 @@
+v2.1 feature release
+Added an icon to the password fields to generate the derivative in mobile
+Changed icon and made sure it's only clickable once or again when changed
+
 v2.0 (alpha) feature release
 Added compatibility for android mobile
 
