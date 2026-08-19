@@ -41,7 +41,7 @@ function notifyUser(titleKey, contentKey, contentSub) {
 	var content = browser.i18n.getMessage(contentKey, contentSub);
 	browser.notifications.create(MsgNotification, {
 		"type": "basic",
-		"iconUrl": browser.runtime.getURL("icons/link-48.png"),
+		"iconUrl": browser.runtime.getURL("icons/lock-48.png"),
 		"title": title,
 		"message": content
 	});
