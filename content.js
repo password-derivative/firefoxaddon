@@ -75,19 +75,41 @@ myPort.onMessage.addListener(function(m) {
 
 	const UNLOCKED_COLOR = "#000000";
 	const LOCKED_COLOR = "#9aa0a6";
+	const SVG_NS = "http://www.w3.org/2000/svg";
 
 	// Simple, self-drawn padlock shapes (not lifted from any icon set):
 	// a rounded body plus a shackle arc, either closed (both legs meeting
 	// the body) or swung open (right leg lifted away).
 	const SHACKLE_CLOSED = "M8 10V7a4 4 0 0 1 8 0v3";
 	const SHACKLE_OPEN = "M8 10V7a4 4 0 0 1 7.4-2.2";
-	const BODY = '<rect x="5" y="10" width="14" height="10" rx="2"></rect>';
 
-	function svgMarkup(shacklePath, color) {
-		return '<svg viewBox="0 0 24 24" width="' + SIZE + '" height="' + SIZE +
-			'" fill="none" stroke="' + color + '" stroke-width="2" ' +
-			'stroke-linecap="round" stroke-linejoin="round">' +
-			BODY + '<path d="' + shacklePath + '"></path></svg>';
+	// Built with DOM APIs (not innerHTML/outerHTML with a string) since the
+	// values are static either way, but the AMO linter flags any innerHTML
+	// assignment regardless of whether the content is dynamic or not.
+	function buildLockSvg(shacklePath, color) {
+		const svg = document.createElementNS(SVG_NS, "svg");
+		svg.setAttribute("viewBox", "0 0 24 24");
+		svg.setAttribute("width", String(SIZE));
+		svg.setAttribute("height", String(SIZE));
+		svg.setAttribute("fill", "none");
+		svg.setAttribute("stroke", color);
+		svg.setAttribute("stroke-width", "2");
+		svg.setAttribute("stroke-linecap", "round");
+		svg.setAttribute("stroke-linejoin", "round");
+
+		const body = document.createElementNS(SVG_NS, "rect");
+		body.setAttribute("x", "5");
+		body.setAttribute("y", "10");
+		body.setAttribute("width", "14");
+		body.setAttribute("height", "10");
+		body.setAttribute("rx", "2");
+		svg.appendChild(body);
+
+		const shackle = document.createElementNS(SVG_NS, "path");
+		shackle.setAttribute("d", shacklePath);
+		svg.appendChild(shackle);
+
+		return svg;
 	}
 
 	const tracked = new Map(); // password field -> our injected icon element
@@ -103,9 +125,11 @@ myPort.onMessage.addListener(function(m) {
 
 	function setLocked(icon, locked) {
 		icon.dataset.locked = locked ? "true" : "false";
-		icon.innerHTML = locked
-			? svgMarkup(SHACKLE_CLOSED, LOCKED_COLOR)
-			: svgMarkup(SHACKLE_OPEN, UNLOCKED_COLOR);
+		while (icon.firstChild) icon.removeChild(icon.firstChild);
+		icon.appendChild(buildLockSvg(
+			locked ? SHACKLE_CLOSED : SHACKLE_OPEN,
+			locked ? LOCKED_COLOR : UNLOCKED_COLOR
+		));
 		icon.title = locked
 			? (browser.i18n.getMessage("inlineIconTitleLocked") || "Password encrypted")
 			: (browser.i18n.getMessage("inlineIconTitle") || "Encrypt password");
