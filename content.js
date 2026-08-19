@@ -157,16 +157,18 @@ myPort.onMessage.addListener(function(m) {
 			if (icon.dataset.locked !== "true") icon.style.opacity = "0.75";
 		});
 
-		// Keep focus on the password field itself when the icon is tapped,
-		// so document.activeElement stays the field (the encrypt flow
-		// relies on that) instead of jumping to the icon.
+		// Keep focus on the password field itself when the icon is tapped
+		// (mouse or touch - touch devices synthesize a mousedown/click pair
+		// too, unless the touchstart itself is preventDefault()'d, which is
+		// why there's no separate touchstart handler here: doing that would
+		// suppress the click event entirely on touch devices, and the icon
+		// would silently stop responding to taps on mobile), so
+		// document.activeElement stays the field (the encrypt flow relies
+		// on that) instead of jumping to the icon.
 		icon.addEventListener("mousedown", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 		});
-		icon.addEventListener("touchstart", (e) => {
-			e.preventDefault();
-		}, {passive: false});
 		icon.addEventListener("click", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
