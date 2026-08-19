@@ -3,7 +3,7 @@
   "description": "Protect your passwords by ensuring none of them are the same. Convert your password to a domain-based unique derivative, using non-reversible hash encryption.",
   "homepage_url": "https://github.com/password-derivative/firefoxaddon",
   "manifest_version": 2,
-  "version": "2.0",
+  "version": "1.5",
   "default_locale": "en",
   "icons": {
     "48": "icons/link-48.png"
@@ -12,7 +12,10 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "password-derivative@eenblauwehemel.nl",
-      "strict_min_version": "96.0"
+      "strict_min_version": "96.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     },
     "gecko_android": {
       "strict_min_version": "120.0"
