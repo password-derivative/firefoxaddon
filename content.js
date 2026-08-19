@@ -4,6 +4,12 @@ const debug = false;
 let myPort = browser.runtime.connect({name:"strongpassword-content-port"});
 myPort.postMessage({greeting: "Hello from content script"});
 var replyPort;
+
+// Filled in below by the inline-icon module; exposed here so the message
+// handler can flip a field's icon to "locked" once encryption actually
+// succeeds, rather than immediately on click.
+let iconApi = { markEncrypted: function () {} };
+
 /**
 Listen to messges from background script
 When message received, encrypt the password
@@ -34,6 +40,7 @@ myPort.onMessage.addListener(function(m) {
 					if (inputfield.type.toLowerCase() === "password") {
 					  inputfield.value = m.derivative;
 					  myPort.postMessage({greeting: "encrypt-success", port: replyPort});
+					  iconApi.markEncrypted(inputfield);
 					}
 				}
 			}
@@ -51,6 +58,12 @@ myPort.onMessage.addListener(function(m) {
  right-click menu, keyboard shortcut, or toolbar button - which matters
  most on touch devices (Firefox for Android) where the first two don't
  exist at all.
+
+ The icon shows an open padlock by default, and switches to a closed
+ padlock once encryption for that specific field has actually succeeded
+ (not just on click, so a failed attempt doesn't falsely show "locked").
+ If the field is edited afterwards, the icon reopens, since the visible
+ value no longer matches the derivative that was just confirmed.
  **/
 (function () {
 	const ICON_ATTR = "data-pwderiv-icon-attached";
@@ -60,12 +73,24 @@ myPort.onMessage.addListener(function(m) {
 	// isn't something a content script can measure directly.
 	const NATIVE_ICON_ALLOWANCE = 26;
 
-	const tracked = new Map(); // password field -> our injected icon element
+	const UNLOCKED_COLOR = "#000000";
+	const LOCKED_COLOR = "#9aa0a6";
 
-	function isPasswordField(field) {
-		return field && field.tagName === "INPUT" && field.type &&
-			field.type.toLowerCase() === "password";
+	// Simple, self-drawn padlock shapes (not lifted from any icon set):
+	// a rounded body plus a shackle arc, either closed (both legs meeting
+	// the body) or swung open (right leg lifted away).
+	const SHACKLE_CLOSED = "M8 10V7a4 4 0 0 1 8 0v3";
+	const SHACKLE_OPEN = "M8 10V7a4 4 0 0 1 7.4-2.2";
+	const BODY = '<rect x="5" y="10" width="14" height="10" rx="2"></rect>';
+
+	function svgMarkup(shacklePath, color) {
+		return '<svg viewBox="0 0 24 24" width="' + SIZE + '" height="' + SIZE +
+			'" fill="none" stroke="' + color + '" stroke-width="2" ' +
+			'stroke-linecap="round" stroke-linejoin="round">' +
+			BODY + '<path d="' + shacklePath + '"></path></svg>';
 	}
+
+	const tracked = new Map(); // password field -> our injected icon element
 
 	function encryptField(field) {
 		myPort.postMessage({
@@ -76,24 +101,37 @@ myPort.onMessage.addListener(function(m) {
 		});
 	}
 
+	function setLocked(icon, locked) {
+		icon.dataset.locked = locked ? "true" : "false";
+		icon.innerHTML = locked
+			? svgMarkup(SHACKLE_CLOSED, LOCKED_COLOR)
+			: svgMarkup(SHACKLE_OPEN, UNLOCKED_COLOR);
+		icon.title = locked
+			? (browser.i18n.getMessage("inlineIconTitleLocked") || "Password encrypted")
+			: (browser.i18n.getMessage("inlineIconTitle") || "Encrypt password");
+		icon.style.cursor = locked ? "default" : "pointer";
+		icon.style.opacity = locked ? "0.6" : "0.75";
+	}
+
 	function makeIcon(field) {
 		const icon = document.createElement("div");
 		icon.setAttribute("data-pwderiv-icon", "true");
-		icon.title = browser.i18n.getMessage("inlineIconTitle") || "Encrypt password";
 		icon.style.position = "absolute";
 		icon.style.width = SIZE + "px";
 		icon.style.height = SIZE + "px";
 		icon.style.cursor = "pointer";
 		icon.style.zIndex = "2147483647";
-		icon.style.backgroundImage = "url(" + browser.runtime.getURL("icons/link-48.png") + ")";
-		icon.style.backgroundSize = "contain";
-		icon.style.backgroundRepeat = "no-repeat";
-		icon.style.backgroundPosition = "center";
+		icon.style.lineHeight = "0";
 		icon.style.opacity = "0.75";
 		icon.style.pointerEvents = "auto";
+		setLocked(icon, false);
 
-		icon.addEventListener("mouseenter", () => { icon.style.opacity = "1"; });
-		icon.addEventListener("mouseleave", () => { icon.style.opacity = "0.75"; });
+		icon.addEventListener("mouseenter", () => {
+			if (icon.dataset.locked !== "true") icon.style.opacity = "1";
+		});
+		icon.addEventListener("mouseleave", () => {
+			if (icon.dataset.locked !== "true") icon.style.opacity = "0.75";
+		});
 
 		// Keep focus on the password field itself when the icon is tapped,
 		// so document.activeElement stays the field (the encrypt flow
@@ -108,8 +146,18 @@ myPort.onMessage.addListener(function(m) {
 		icon.addEventListener("click", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
+			// Once encryption has succeeded, the icon is inert until the
+			// field is edited again - this prevents accidentally
+			// re-encrypting an already-encrypted value by clicking twice.
+			if (icon.dataset.locked === "true") return;
 			field.focus();
 			encryptField(field);
+		});
+
+		// Editing the field after a successful encryption means the value
+		// shown no longer matches what was just confirmed - reopen the lock.
+		field.addEventListener("input", () => {
+			if (icon.dataset.locked === "true") setLocked(icon, false);
 		});
 
 		document.documentElement.appendChild(icon);
@@ -165,4 +213,9 @@ myPort.onMessage.addListener(function(m) {
 	// Safety net for layout shifts (animations, late CSS, etc.) that don't
 	// fire a scroll/resize event or DOM mutation we'd otherwise catch.
 	setInterval(repositionAll, 500);
+
+	iconApi.markEncrypted = function (field) {
+		const icon = tracked.get(field);
+		if (icon) setLocked(icon, true);
+	};
 })();

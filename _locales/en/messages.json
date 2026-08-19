@@ -41,6 +41,11 @@
 
   "inlineIconTitle": {
     "message": "Encrypt password (Password derivative extension)",
-    "description": "Tooltip for the clickable icon shown inside password fields."
+    "description": "Tooltip for the clickable icon shown inside password fields, before encryption."
+  },
+
+  "inlineIconTitleLocked": {
+    "message": "Password encrypted (Password derivative extension)",
+    "description": "Tooltip for the clickable icon shown inside password fields, after a successful encryption."
   }
 }
